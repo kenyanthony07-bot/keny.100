@@ -28,7 +28,7 @@
         }
         .view-mode .admin-only { display: none !important; }
 
-        /* CONTROL DE TAMAÑO DE TEXTO (Ajustado) */
+        /* CONTROL DE TAMAÑO DE TEXTO */
         .size-control {
             position: absolute;
             top: -40px;
@@ -76,9 +76,24 @@
         .logo-active { animation: logoPress 0.2s ease; }
         @keyframes logoPress { 0% { transform: scale(1); } 50% { transform: scale(0.9); } 100% { transform: scale(1); } }
 
-        /* Máximo aprovechamiento de bordes */
-        .product-card { border-radius: 0; transition: transform 0.2s; position: relative; width: 100%; }
+        /* Cuadro de producto */
+        .product-card { 
+            border-radius: 16px; 
+            transition: transform 0.2s; 
+            position: relative; 
+            width: 100%; 
+            overflow: hidden;
+            background: white;
+            border: 1px solid #f1f5f9;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
         .relative-text { position: relative; }
+
+        /* Ajuste de margen lateral de 1mm exacto (aprox 4px) */
+        .main-container-optimized {
+            padding-left: 4px;
+            padding-right: 4px;
+        }
     </style>
 </head>
 <body id="bodyTag" class="h-full view-mode">
@@ -127,8 +142,8 @@
         </div>
     </nav>
 
-    <!-- PRODUCTOS (BORDE A BORDE) -->
-    <main id="mainContent" class="w-full px-0 py-4 space-y-6 pb-40 max-w-full overflow-hidden"></main>
+    <!-- PRODUCTOS (MARGEN DE 1 MM) -->
+    <main id="mainContent" class="main-container-optimized py-4 space-y-8 pb-40 max-w-full overflow-hidden"></main>
 
     <!-- BOTÓN AÑADIR -->
     <div class="fixed bottom-6 right-4 admin-only z-30 pointer-events-none">
@@ -220,20 +235,49 @@
         };
 
         function init() {
-            const saved = localStorage.getItem('catalogo_v21_master');
+            const saved = localStorage.getItem('catalogo_v25_full_data');
             if (saved) {
                 state = { ...state, ...JSON.parse(saved) };
                 migrarDatos();
             } else {
-                state.winter = [{ 
-                    id: 1, name: "LÍNEA HOTELERA", icon: "https://via.placeholder.com/150", nameSize: 10,
-                    products: [{ 
-                        name: "Edredón Deluxe", nameSize: 16, 
-                        description: "Microfibra de alta calidad, tacto suave. Ideal para todas las estaciones.", descSize: 11, 
-                        price: "S/ 250", priceSize: 22, 
-                        hasDiscount: true, discountValue: 20, thumb: "https://via.placeholder.com/400x500", zoom: "" 
-                    }] 
-                }];
+                // DATOS PRECARGADOS: 4 Categorías Invierno, 4 Categorías Verano, 2 Productos c/u
+                state.winter = [
+                    { id: 1, name: "LÍNEA HOTELERA", icon: "https://via.placeholder.com/150/e0e7ff/000000?text=HOTEL", nameSize: 10, products: [
+                        { name: "Edredón Blanco Deluxe", nameSize: 16, description: "Microfibra tacto seda, relleno siliconado.", descSize: 11, price: "S/ 250", priceSize: 22, hasDiscount: true, discountValue: 20, thumb: "https://via.placeholder.com/400x500/f3f4f6/000000?text=Blanco", zoom: "" },
+                        { name: "Edredón Gris Perla", nameSize: 16, description: "Elegancia y abrigo para tu habitación.", descSize: 11, price: "S/ 250", priceSize: 22, hasDiscount: false, discountValue: 0, thumb: "https://via.placeholder.com/400x500/d1d5db/000000?text=Gris", zoom: "" }
+                    ]},
+                    { id: 2, name: "SHERPA PREMIUM", icon: "https://via.placeholder.com/150/fef3c7/000000?text=SHERPA", nameSize: 10, products: [
+                        { name: "Sherpa Azul Noche", nameSize: 16, description: "Doble faz, carnerito extra suave.", descSize: 11, price: "S/ 180", priceSize: 22, hasDiscount: true, discountValue: 15, thumb: "https://via.placeholder.com/400x500/1e3a8a/ffffff?text=Azul", zoom: "" },
+                        { name: "Sherpa Camello", nameSize: 16, description: "Calidez extrema para el invierno.", descSize: 11, price: "S/ 180", priceSize: 22, hasDiscount: false, discountValue: 0, thumb: "https://via.placeholder.com/400x500/d97706/ffffff?text=Camello", zoom: "" }
+                    ]},
+                    { id: 3, name: "PLUMAS", icon: "https://via.placeholder.com/150/fce7f3/000000?text=PLUMAS", nameSize: 10, products: [
+                        { name: "Plumas de Ganso", nameSize: 16, description: "100% natural, térmico y ligero.", descSize: 11, price: "S/ 450", priceSize: 22, hasDiscount: true, discountValue: 10, thumb: "https://via.placeholder.com/400x500/fbcfe8/000000?text=Ganso", zoom: "" },
+                        { name: "Plumas Sintético", nameSize: 16, description: "Alternativa hipoalergénica de lujo.", descSize: 11, price: "S/ 300", priceSize: 22, hasDiscount: false, discountValue: 0, thumb: "https://via.placeholder.com/400x500/f472b6/ffffff?text=Sintetico", zoom: "" }
+                    ]},
+                    { id: 4, name: "NÓRDICOS", icon: "https://via.placeholder.com/150/ccfbf1/000000?text=NORDICO", nameSize: 10, products: [
+                        { name: "Nórdico Simple", nameSize: 16, description: "Funda lavable + relleno.", descSize: 11, price: "S/ 220", priceSize: 22, hasDiscount: true, discountValue: 25, thumb: "https://via.placeholder.com/400x500/99f6e4/000000?text=Simple", zoom: "" },
+                        { name: "Nórdico Estampado", nameSize: 16, description: "Diseños modernos y vibrantes.", descSize: 11, price: "S/ 240", priceSize: 22, hasDiscount: false, discountValue: 0, thumb: "https://via.placeholder.com/400x500/5eead4/000000?text=Estampado", zoom: "" }
+                    ]}
+                ];
+                
+                state.summer = [
+                    { id: 5, name: "SÁBANAS ALGODÓN", icon: "https://via.placeholder.com/150/ffedd5/000000?text=SABANAS", nameSize: 10, products: [
+                        { name: "Juego 200 Hilos", nameSize: 16, description: "Algodón pima, frescura total.", descSize: 11, price: "S/ 120", priceSize: 22, hasDiscount: true, discountValue: 10, thumb: "https://via.placeholder.com/400x500/fed7aa/000000?text=200H", zoom: "" },
+                        { name: "Juego 400 Hilos", nameSize: 16, description: "Suavidad satinada premium.", descSize: 11, price: "S/ 190", priceSize: 22, hasDiscount: false, discountValue: 0, thumb: "https://via.placeholder.com/400x500/fdba74/000000?text=400H", zoom: "" }
+                    ]},
+                    { id: 6, name: "QUILTS", icon: "https://via.placeholder.com/150/dbeafe/000000?text=QUILTS", nameSize: 10, products: [
+                        { name: "Quilt Verano", nameSize: 16, description: "Ligero y decorativo.", descSize: 11, price: "S/ 150", priceSize: 22, hasDiscount: true, discountValue: 20, thumb: "https://via.placeholder.com/400x500/bfdbfe/000000?text=Verano", zoom: "" },
+                        { name: "Quilt Reversible", nameSize: 16, description: "Dos diseños en uno.", descSize: 11, price: "S/ 160", priceSize: 22, hasDiscount: false, discountValue: 0, thumb: "https://via.placeholder.com/400x500/93c5fd/000000?text=Reversible", zoom: "" }
+                    ]},
+                    { id: 7, name: "COLCHAS", icon: "https://via.placeholder.com/150/f3e8ff/000000?text=COLCHAS", nameSize: 10, products: [
+                        { name: "Colcha Piqué", nameSize: 16, description: "Textura clásica y fresca.", descSize: 11, price: "S/ 100", priceSize: 22, hasDiscount: true, discountValue: 15, thumb: "https://via.placeholder.com/400x500/e9d5ff/000000?text=Pique", zoom: "" },
+                        { name: "Colcha Bordada", nameSize: 16, description: "Detalles elegantes.", descSize: 11, price: "S/ 130", priceSize: 22, hasDiscount: false, discountValue: 0, thumb: "https://via.placeholder.com/400x500/d8b4fe/000000?text=Bordada", zoom: "" }
+                    ]},
+                    { id: 8, name: "FUNDAS", icon: "https://via.placeholder.com/150/ecfccb/000000?text=FUNDAS", nameSize: 10, products: [
+                        { name: "Pack Fundas Almohada", nameSize: 16, description: "Set de 2 unidades.", descSize: 11, price: "S/ 40", priceSize: 22, hasDiscount: true, discountValue: 5, thumb: "https://via.placeholder.com/400x500/d9f99d/000000?text=Almohadas", zoom: "" },
+                        { name: "Protector Colchón", nameSize: 16, description: "Impermeable y transpirable.", descSize: 11, price: "S/ 90", priceSize: 22, hasDiscount: false, discountValue: 0, thumb: "https://via.placeholder.com/400x500/bef264/000000?text=Protector", zoom: "" }
+                    ]}
+                ];
             }
             render();
         }
@@ -334,20 +378,21 @@
 
             const content = document.getElementById('mainContent');
             content.innerHTML = data.map((cat, cIdx) => `
-                <section id="cat-${cIdx}" class="bg-white p-0 rounded-none shadow-sm border-b border-gray-100 scroll-mt-20">
-                    <div class="flex justify-between items-center border-b border-gray-50 pb-2 mb-0 px-2 pt-4">
+                <section id="cat-${cIdx}" class="bg-white p-0 rounded-[24px] shadow-sm border border-gray-100 mb-8 scroll-mt-20 overflow-hidden">
+                    <div class="flex justify-between items-center border-b border-gray-50 pb-2 mb-4 px-4 pt-4">
                         <h2 contenteditable="${isEditMode}" onblur="state['${state.season}'][${cIdx}].name = this.innerText" class="text-xl md:text-3xl font-black text-gray-800 uppercase editable border-b-4 ${isW ? 'border-blue-600' : 'border-orange-600'} tracking-tighter">${cat.name}</h2>
                         <div class="admin-only flex gap-1">
                             <button onclick="replicateData(${cIdx})" class="text-[8px] bg-indigo-50 text-indigo-700 px-2 py-1 rounded-lg font-black uppercase">⚡</button>
                             <button onclick="deleteAction('cat', ${cIdx})" class="text-[8px] bg-red-50 text-red-600 px-2 py-1 rounded-lg font-black uppercase">🗑️</button>
                         </div>
                     </div>
-                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-[2px] bg-gray-100">
+                    <!-- Grid con padding lateral de 4px para simular 1mm -->
+                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 pb-4">
                         ${cat.products.map((p, pIdx) => {
                             const discVal = p.discountValue || 0;
                             const finalPrice = p.hasDiscount ? calculateDiscount(p.price, discVal) : p.price;
                             return `
-                            <div class="product-card flex flex-col h-full bg-white overflow-hidden">
+                            <div class="product-card flex flex-col h-full bg-white">
                                 <div class="aspect-[4/5] bg-gray-50 relative overflow-hidden">
                                     <img src="${p.thumb}" class="w-full h-full object-cover ${!isEditMode ? 'cursor-zoom-in' : ''}" onclick="${!isEditMode ? `openZoom('${p.zoom || p.thumb}')` : ''}">
                                     ${ p.hasDiscount && discVal > 0 ? `<div class="discount-badge">-${discVal}%</div>` : '' }
@@ -383,7 +428,7 @@
                                 </div>
                             </div>
                         `}).join('')}
-                        <div onclick="addProduct(${cIdx})" class="admin-only aspect-[4/5] flex flex-col items-center justify-center text-gray-300 cursor-pointer text-4xl hover:bg-gray-50 bg-white">+</div>
+                        <div onclick="addProduct(${cIdx})" class="admin-only aspect-[4/5] flex flex-col items-center justify-center text-gray-300 cursor-pointer text-4xl hover:bg-gray-50 bg-white rounded-2xl border-2 border-dashed border-gray-100">+</div>
                     </div>
                 </section>
             `).join('');
@@ -405,7 +450,7 @@
         function updateProd(c, p, k, v) { state[state.season][c].products[p][k] = v; }
         function switchSeason(s) { state.season = s; render(); }
         function toggleDiscount(c, p) { state[state.season][c].products[p].hasDiscount = !state[state.season][c].products[p].hasDiscount; render(); }
-        function saveToStorage() { localStorage.setItem('catalogo_v21_master', JSON.stringify(state)); document.getElementById('successModal').classList.add('active'); }
+        function saveToStorage() { localStorage.setItem('catalogo_v25_full_data', JSON.stringify(state)); document.getElementById('successModal').classList.add('active'); }
         function sendWhatsapp(cIdx, pIdx) { const p = state[state.season][cIdx].products[pIdx]; const finalPrice = p.hasDiscount ? calculateDiscount(p.price, p.discountValue) : p.price; const text = `🛍️ *PEDIDO*\n*Producto*: ${p.name.toUpperCase()}\n*Precio*: ${finalPrice}\n*Foto*: ${p.thumb}`; window.open(`https://wa.me/${state.whatsapp}?text=${encodeURIComponent(text)}`, '_blank'); }
         function scrollToSection(idx) { const el = document.getElementById(`cat-${idx}`); if(el) window.scrollTo({top: el.offsetTop - 70, behavior: 'smooth'}); }
         function openZoom(u) { document.getElementById('modalImg').src = u; document.getElementById('imageModal').classList.add('active'); }
