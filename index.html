@@ -5,240 +5,260 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Catálogo Pro - Control AI Gemini</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- 
+        ========================================================================
+        1. SECCIÓN DE ESTILOS (CSS)
+        Contiene todo el diseño visual, animaciones y adaptabilidad móvil.
+        ========================================================================
+    -->
     <style>
-        /* Tipografía y Base */
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; scroll-behavior: smooth; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; overflow-x: hidden; }
+        /* Base y Tipografía */
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #f8fafc; 
+            scroll-behavior: smooth; 
+            margin: 0; 
+            padding: 0; 
+            -webkit-tap-highlight-color: transparent; 
+            overflow-x: hidden; 
+        }
         
+        /* Temas Dinámicos */
         .winter-theme { background: linear-gradient(180deg, #1e3a8a 0%, #2563eb 100%); }
         .summer-theme { background: linear-gradient(180deg, #c2410c 0%, #f97316 100%); }
         
+        /* Utilidades de Scroll y Texto */
         .scroll-hide::-webkit-scrollbar { display: none; }
         .scroll-hide { -ms-overflow-style: none; scrollbar-width: none; }
-        
         .line-clamp-3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 
-        /* --- MODO EDICIÓN --- */
+        /* Estilos del Modo Edición */
         .edit-mode .editable {
-            -webkit-user-select: text !important; user-select: text !important; cursor: text;
+            -webkit-user-select: text !important; 
+            user-select: text !important; 
+            cursor: text;
             border-bottom: 2px dashed rgba(255,255,255,0.4);
         }
         .edit-mode #mainContent .editable { border-bottom: 1px dashed #cbd5e1; }
         .edit-mode .editable:focus, .edit-mode .editable:hover {
-            outline: none; background-color: #fef08a !important; color: #1e293b !important; border-radius: 4px;
+            outline: none; 
+            background-color: #fef08a !important; 
+            color: #1e293b !important; 
+            border-radius: 4px;
         }
         .view-mode .admin-only { display: none !important; }
 
-        /* CONTROL DE TAMAÑO DE TEXTO */
+        /* Controles de Tamaño de Fuente (Modo Texto) */
         .size-control {
-            position: absolute;
-            top: -45px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: white;
-            border: 1px solid #cbd5e1;
-            border-radius: 8px;
-            display: none;
-            align-items: center;
-            padding: 4px;
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.15);
-            z-index: 5000;
-            gap: 2px;
-            white-space: nowrap;
+            position: absolute; top: -45px; left: 50%; transform: translateX(-50%);
+            background: white; border: 1px solid #cbd5e1; border-radius: 8px;
+            display: none; align-items: center; padding: 4px; gap: 2px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.15); z-index: 5000;
         }
         .text-edit-active .size-control { display: flex; }
         .size-btn {
             width: 26px; height: 26px; display: flex; align-items: center; justify-content: center;
             background: #f1f5f9; border-radius: 4px; cursor: pointer; font-size: 10px; color: #334155; font-weight: bold;
-            transition: background 0.2s;
         }
-        .size-btn:active { background: #cbd5e1; transform: scale(0.95); }
+        .size-btn:active { transform: scale(0.95); }
         .size-btn.reset { color: #2563eb; background: #eff6ff; }
-        .size-input {
-            width: 30px; text-align: center; font-size: 12px; font-weight: 800; border: none; outline: none; background: transparent;
-        }
+        .size-input { width: 30px; text-align: center; font-size: 12px; font-weight: 800; border: none; outline: none; background: transparent; }
 
-        /* BADGE DESCUENTO */
+        /* Badge de Descuento */
         .discount-badge {
             position: absolute; top: 0; right: 0; background: #dc2626; color: white;
             font-weight: 900; padding: 4px 10px; border-bottom-left-radius: 12px;
             font-size: 0.8rem; z-index: 20; box-shadow: -1px 1px 4px rgba(0,0,0,0.2);
         }
 
-        /* MODALES */
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 9999; backdrop-filter: blur(5px); }
+        /* Sistema de Modales */
+        .modal-overlay { 
+            position: fixed; inset: 0; background: rgba(0,0,0,0.85); 
+            display: none; align-items: center; justify-content: center; 
+            z-index: 9999; backdrop-filter: blur(5px); 
+        }
         .modal-overlay.active { display: flex; }
-        .modal-window { background: white; width: 95%; max-width: 400px; padding: 25px; border-radius: 24px; max-height: 90vh; overflow-y: auto; }
+        .modal-window { 
+            background: white; width: 95%; max-width: 400px; padding: 25px; 
+            border-radius: 24px; max-height: 90vh; overflow-y: auto; 
+        }
 
-        header { padding-top: 1rem !important; padding-bottom: 2.5rem !important; }
-        .season-selector { margin-top: -1.8rem !important; }
-
-        .nav-container { width: 100%; overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; padding: 8px 0; touch-action: pan-x; }
-
+        /* Animaciones */
         .logo-active { animation: logoPress 0.2s ease; }
         @keyframes logoPress { 0% { transform: scale(1); } 50% { transform: scale(0.9); } 100% { transform: scale(1); } }
 
-        .product-card { 
-            border-radius: 16px; 
-            transition: transform 0.2s; 
-            position: relative; 
-            width: 100%; 
-            overflow: hidden;
-            background: white;
-            border: 1px solid #f1f5f9;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        }
-        .relative-text { position: relative; display: inline-block; max-width: 100%; }
-        .main-container-optimized { padding-left: 4px; padding-right: 4px; }
-
         /* Estilos IA ✨ */
-        .ai-sparkle { background: linear-gradient(90deg, #6366f1, #a855f7); color: white; border-radius: 8px; padding: 4px 8px; font-size: 10px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s; border: none; }
+        .ai-sparkle { 
+            background: linear-gradient(90deg, #6366f1, #a855f7); 
+            color: white; border-radius: 8px; padding: 4px 8px; 
+            font-size: 10px; font-weight: bold; cursor: pointer; 
+            display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s; border: none; 
+        }
         .ai-sparkle:hover { transform: scale(1.05); opacity: 0.9; }
-        .ai-sparkle:disabled { opacity: 0.5; cursor: not-allowed; }
         .loading-dots:after { content: '.'; animation: dots 1.5s steps(5, end) infinite; }
         @keyframes dots { 0%, 20% { content: '.'; } 40% { content: '..'; } 60% { content: '...'; } 80%, 100% { content: ''; } }
     </style>
 </head>
+
+<!-- 
+    ========================================================================
+    2. SECCIÓN DE ESTRUCTURA (HTML)
+    Define los elementos de la página, menús y ventanas emergentes.
+    ========================================================================
+-->
 <body id="bodyTag" class="h-full view-mode">
 
-    <!-- PANEL ADMIN -->
+    <!-- BARRA DE ADMINISTRACIÓN (Se activa tras 5 clics en el logo) -->
     <div id="adminPanel" class="fixed top-0 left-0 right-0 z-[4000] bg-gray-950 text-white p-2 hidden flex-col md:flex-row justify-between items-center shadow-2xl border-b border-white/10">
         <div class="flex items-center gap-2 flex-wrap justify-center w-full">
-            <button onclick="toggleViewMode()" id="modeBtn" class="bg-blue-600 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase">👁️ Cliente</button>
-            <button onclick="toggleTextMode()" id="textBtn" class="bg-indigo-600 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase">📝 Textos</button>
+            <button onclick="toggleViewMode()" id="modeBtn" class="bg-blue-600 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase">👁️ Modo Cliente</button>
+            <button onclick="toggleTextMode()" id="textBtn" class="bg-indigo-600 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase">📝 Ajustar Textos</button>
             <button onclick="openWhatsappConfig()" class="bg-green-700 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase">📞 WhatsApp</button>
-            <button onclick="saveToStorage()" class="bg-indigo-600 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase">💾 Guardar</button>
+            <button onclick="saveToStorage()" class="bg-indigo-600 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase">💾 Guardar Todo</button>
             <button onclick="closeAdminPanel()" class="bg-red-600 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase">❌ Salir</button>
         </div>
     </div>
 
-    <!-- HEADER -->
-    <header id="mainHeader" class="text-center winter-theme text-white relative rounded-b-[3rem] shadow-xl transition-all duration-500">
+    <!-- CABECERA PRINCIPAL -->
+    <header id="mainHeader" class="text-center pt-8 pb-10 winter-theme text-white relative rounded-b-[3rem] shadow-xl transition-all duration-500">
         <div id="logoContainer" class="w-20 h-20 md:w-28 md:h-28 mx-auto mb-2 bg-white rounded-full p-1 shadow-inner overflow-hidden relative cursor-pointer" onclick="handleLogoSecret()">
             <img id="storeLogo" src="https://via.placeholder.com/200?text=LOGO" class="w-full h-full object-contain rounded-full">
-            <div class="admin-only absolute inset-0 bg-black/50 flex items-center justify-center text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity uppercase text-white">Editar</div>
+            <div class="admin-only absolute inset-0 bg-black/50 flex items-center justify-center text-[10px] font-bold opacity-0 hover:opacity-100 transition-opacity uppercase text-white">Editar Logo</div>
         </div>
         
         <div class="relative-text inline-block px-4 max-w-full">
-            <h1 id="storeTitle" class="font-black uppercase leading-none mb-1 tracking-tighter whitespace-nowrap">EDREDONES PREMIUM</h1>
+            <h1 id="storeTitle" class="font-black uppercase leading-none mb-1 tracking-tighter whitespace-nowrap">CATÁLOGO PRO</h1>
             <div class="size-control admin-only" id="ctrl-title"></div>
         </div>
         <br>
         <div class="relative-text inline-block px-4 group">
-            <p id="storeSubtitle" class="opacity-90 italic">Calidad y confort garantizado</p>
+            <p id="storeSubtitle" class="opacity-90 italic">Calidad superior para tu hogar</p>
             <div class="size-control admin-only" id="ctrl-subtitle"></div>
-            <!-- IA Slogan -->
+            <!-- Botón IA -->
             <div class="admin-only absolute -bottom-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button id="aiSloganBtn" onclick="generateAISlogan()" class="ai-sparkle">✨ Slogan AI</button>
             </div>
         </div>
     </header>
 
-    <!-- SELECTOR TEMPORADA -->
-    <div class="flex justify-center season-selector relative z-10 px-4">
+    <!-- SELECTOR DE TEMPORADA -->
+    <div class="flex justify-center -mt-6 relative z-10 px-4">
         <div class="bg-white/95 backdrop-blur-md p-1 rounded-full shadow-lg flex gap-1 w-full max-w-lg border border-white">
-            <button onclick="switchSeason('winter')" id="btnWinter" class="flex-1 py-3 rounded-full text-sm md:text-lg font-black winter-theme text-white transition-all uppercase active:scale-95">❄️ Invierno</button>
-            <button onclick="switchSeason('summer')" id="btnSummer" class="flex-1 py-3 rounded-full text-sm md:text-lg font-black bg-gray-100 text-gray-400 transition-all uppercase active:scale-95">☀️ Verano</button>
+            <button onclick="switchSeason('winter')" id="btnWinter" class="flex-1 py-3 rounded-full text-sm font-black transition-all uppercase">❄️ Invierno</button>
+            <button onclick="switchSeason('summer')" id="btnSummer" class="flex-1 py-3 rounded-full text-sm font-black transition-all uppercase">☀️ Verano</button>
         </div>
     </div>
 
-    <!-- NAVEGACIÓN -->
+    <!-- MENÚ DE NAVEGACIÓN POR CATEGORÍAS -->
     <nav class="sticky top-0 z-40 bg-white/95 backdrop-blur-md mt-4 border-b border-gray-100 shadow-sm">
-        <div class="nav-container scroll-hide">
+        <div class="nav-container scroll-hide overflow-x-auto whitespace-nowrap py-2">
             <div id="circleNav" class="flex gap-4 px-4"></div>
         </div>
     </nav>
 
-    <!-- PRODUCTOS -->
-    <main id="mainContent" class="main-container-optimized py-4 space-y-8 pb-40 max-w-full overflow-hidden"></main>
+    <!-- ÁREA DE PRODUCTOS -->
+    <main id="mainContent" class="px-2 py-4 space-y-8 pb-40 max-w-full overflow-hidden"></main>
 
-    <!-- BOTÓN AÑADIR -->
+    <!-- BOTÓN AÑADIR (ADMIN) -->
     <div class="fixed bottom-6 right-4 admin-only z-30 pointer-events-none">
         <button onclick="addCategory()" class="pointer-events-auto bg-indigo-600 text-white w-14 h-14 rounded-full shadow-2xl text-4xl font-bold border-4 border-white active:scale-90">+</button>
     </div>
 
-    <!-- MODAL WHATSAPP -->
-    <div id="whatsappModal" class="modal-overlay" style="z-index: 7000;">
-        <div class="modal-window">
-            <h3 class="text-lg font-black text-gray-800 mb-4 uppercase border-b pb-2 text-center">📞 WhatsApp</h3>
-            <div class="space-y-4">
-                <input type="text" id="wsNumber" class="w-full border p-3 text-sm bg-gray-50 rounded-xl" placeholder="Número">
-                <input type="text" id="wsText" class="w-full border p-3 text-sm bg-gray-50 rounded-xl" placeholder="Texto Botón">
-                <div class="flex items-center gap-3">
-                    <label class="text-[10px] font-bold text-gray-400 uppercase">Color Fondo:</label>
-                    <input type="color" id="wsColor" class="w-12 h-10 border-none bg-transparent">
-                </div>
+    <!-- MODALES DE AJUSTES -->
+    <div id="whatsappModal" class="modal-overlay">
+        <div class="modal-window text-center">
+            <h3 class="text-lg font-black text-gray-800 mb-4 uppercase">📞 CONFIGURACIÓN WHATSAPP</h3>
+            <input type="text" id="wsNumber" class="w-full border p-3 text-sm bg-gray-50 rounded-xl mb-3" placeholder="Número (ej: 51900000000)">
+            <input type="text" id="wsText" class="w-full border p-3 text-sm bg-gray-50 rounded-xl mb-3" placeholder="Texto del botón">
+            <div class="flex items-center justify-between px-2 mb-6">
+                <span class="text-[10px] font-bold text-gray-400 uppercase">Color botón:</span>
+                <input type="color" id="wsColor" class="w-12 h-10 border-none bg-transparent">
             </div>
-            <div class="flex gap-2 mt-6">
-                <button onclick="document.getElementById('whatsappModal').classList.remove('active')" class="flex-1 bg-gray-100 py-3 rounded-xl font-bold text-xs uppercase text-gray-500">Cerrar</button>
+            <div class="flex gap-2">
+                <button onclick="document.getElementById('whatsappModal').classList.remove('active')" class="flex-1 bg-gray-100 py-3 rounded-xl font-bold text-xs uppercase">Cerrar</button>
                 <button onclick="saveWhatsappConfig()" class="flex-1 bg-green-600 text-white py-3 rounded-xl font-bold text-xs uppercase">Guardar</button>
             </div>
         </div>
     </div>
 
-    <!-- MODAL CONFIGURACIÓN GENÉRICO -->
-    <div id="configModal" class="modal-overlay" style="z-index: 7000;">
+    <div id="editProductModal" class="modal-overlay">
         <div class="modal-window">
-            <h3 id="configTitle" class="text-lg font-black text-gray-800 mb-4 uppercase text-center">Ajustes</h3>
-            <input type="text" id="configInput" class="w-full border p-3 rounded-xl mb-4 text-sm outline-none focus:border-indigo-500">
-            <div class="flex gap-2">
-                <button onclick="document.getElementById('configModal').classList.remove('active')" class="flex-1 bg-gray-100 py-3 rounded-xl font-bold text-xs uppercase text-gray-500">Cerrar</button>
-                <button id="configSaveBtn" class="flex-1 bg-indigo-600 text-white py-3 rounded-xl font-bold text-xs uppercase">Guardar</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL EDITAR PRODUCTO CON IA -->
-    <div id="editProductModal" class="modal-overlay" style="z-index: 7000;">
-        <div class="modal-window">
-            <h3 class="text-lg font-black text-gray-800 mb-4 uppercase text-center">📦 Producto</h3>
+            <h3 class="text-lg font-black text-gray-800 mb-4 uppercase text-center">📦 FICHA PRODUCTO</h3>
             <div class="space-y-4">
-                <div>
-                    <label class="text-[10px] font-bold text-gray-400 uppercase">Miniatura URL</label>
-                    <input type="text" id="prodThumb" class="w-full border p-3 text-xs rounded-xl" placeholder="Imagen Miniatura URL">
-                </div>
-                <div>
-                    <label class="text-[10px] font-bold text-gray-400 uppercase">Zoom URL</label>
-                    <input type="text" id="prodZoom" class="w-full border p-3 text-xs rounded-xl" placeholder="Imagen Zoom URL">
-                </div>
-                <div>
-                    <label class="text-[10px] font-bold text-gray-400 uppercase">% Descuento</label>
-                    <input type="number" id="prodDiscount" class="w-full border p-3 text-xs rounded-xl" placeholder="% Descuento">
-                </div>
-                <div class="border-t pt-4">
+                <input type="text" id="prodThumb" class="w-full border p-3 text-xs rounded-xl" placeholder="URL Imagen Miniatura">
+                <input type="number" id="prodDiscount" class="w-full border p-3 text-xs rounded-xl" placeholder="% Descuento">
+                <div class="border-t pt-2">
                     <div class="flex justify-between items-center mb-2">
-                        <label class="text-[10px] font-bold text-gray-400 uppercase">Descripción Inteligente</label>
-                        <button id="aiDescBtn" onclick="generateAIDesc()" class="ai-sparkle">✨ Redactar AI</button>
+                        <label class="text-[10px] font-bold text-gray-400 uppercase">Descripción</label>
+                        <button onclick="generateAIDesc()" class="ai-sparkle">✨ Crear con IA</button>
                     </div>
-                    <textarea id="prodDescText" class="w-full border p-3 text-xs rounded-xl h-24 resize-none" placeholder="Escribe o usa la IA..."></textarea>
+                    <textarea id="prodDescText" class="w-full border p-3 text-xs rounded-xl h-24 resize-none" placeholder="Escribe aquí..."></textarea>
                 </div>
             </div>
             <div class="flex gap-2 mt-6">
-                <button onclick="document.getElementById('editProductModal').classList.remove('active')" class="flex-1 bg-gray-100 py-3 text-xs font-bold uppercase text-gray-500 rounded-xl">Cancelar</button>
+                <button onclick="document.getElementById('editProductModal').classList.remove('active')" class="flex-1 bg-gray-100 py-3 text-xs font-bold uppercase rounded-xl">Cerrar</button>
                 <button onclick="saveProductModalChanges()" class="flex-1 bg-indigo-600 text-white py-3 text-xs font-bold uppercase rounded-xl">Aplicar</button>
             </div>
         </div>
     </div>
 
-    <!-- MODAL ÉXITO -->
-    <div id="successModal" class="modal-overlay" style="z-index: 9000;">
+    <!-- MODALES DE NOTIFICACIÓN -->
+    <div id="alertModal" class="modal-overlay" style="z-index: 99999;">
         <div class="modal-window text-center">
-            <div class="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">✓</div>
-            <h3 class="text-xl font-black text-gray-800 mb-2 uppercase">¡Guardado!</h3>
-            <p class="text-xs text-gray-500 mb-6">Los cambios se guardaron con éxito.</p>
-            <button onclick="document.getElementById('successModal').classList.remove('active')" class="w-full bg-gray-900 text-white py-3 rounded-xl font-bold text-xs uppercase">Aceptar</button>
+            <div id="alertIcon" class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">i</div>
+            <h3 id="alertTitle" class="text-xl font-black text-gray-800 mb-2 uppercase">Aviso</h3>
+            <p id="alertBody" class="text-xs text-gray-500 mb-6"></p>
+            <button onclick="document.getElementById('alertModal').classList.remove('active')" class="w-full bg-gray-900 text-white py-3 rounded-xl font-bold text-xs uppercase">Aceptar</button>
         </div>
     </div>
 
-    <!-- ZOOM -->
+    <!-- ZOOM DE IMAGEN -->
     <div id="imageModal" class="modal-overlay">
-        <button onclick="closeZoom()" class="close-zoom-btn">✕</button>
-        <img id="modalImg" src="" class="max-w-[98%] max-h-[90vh] rounded-xl shadow-2xl transition-transform duration-300">
+        <button onclick="document.getElementById('imageModal').classList.remove('active')" class="absolute top-4 right-4 text-white text-3xl">✕</button>
+        <img id="modalImg" src="" class="max-w-[95%] max-h-[90vh] rounded-xl shadow-2xl">
     </div>
 
+    <!-- 
+        ========================================================================
+        3. SECCIÓN DE LÓGICA (JAVASCRIPT)
+        Maneja la base de datos, los cambios de modo, el renderizado y la IA.
+        ========================================================================
+    -->
     <script>
-        // --- GEMINI API INTEGRATION ---
-        const apiKey = "";
-        
+        // --- VARIABLES DE ESTADO Y CONFIGURACIÓN ---
+        const apiKey = ""; // La IA usa el motor del sistema
+        let isEditMode = false;
+        let isAdminActive = false;
+        let isTextMode = false;
+        let currentEdit = { cIdx: null, pIdx: null };
+        let logoClicks = 0;
+        let clickTimer = null;
+
+        const DEFAULTS = { titleSize: 24, subtitleSize: 14, nameSize: 16, descSize: 11, priceSize: 22, catNameSize: 10 };
+
+        let state = {
+            season: 'winter', 
+            whatsapp: '11133344', 
+            wsText: 'Comprar por WhatsApp', 
+            wsColor: '#25D366',
+            logo: 'https://cdn-icons-png.flaticon.com/512/6103/6103079.png', 
+            title: 'EDREDONES PREMIUM',
+            titleSize: DEFAULTS.titleSize, 
+            subtitle: 'Calidad superior y confort para tu descanso', 
+            subtitleSize: DEFAULTS.subtitleSize,
+            winter: [], 
+            summer: []
+        };
+
+        // --- SISTEMA DE ALERTAS PERSONALIZADO ---
+        function showAlert(msg, title = "Aviso") {
+            document.getElementById('alertTitle').innerText = title;
+            document.getElementById('alertBody').innerText = msg;
+            document.getElementById('alertModal').classList.add('active');
+        }
+
+        // --- MOTOR DE INTELIGENCIA ARTIFICIAL (GEMINI) ---
         async function callGemini(prompt, systemPrompt) {
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
             const payload = {
@@ -246,291 +266,191 @@
                 systemInstruction: { parts: [{ text: systemPrompt }] }
             };
             
-            let delay = 1000;
-            for (let i = 0; i < 5; i++) {
+            const delays = [1000, 2000, 4000, 8000, 16000];
+            for (let i = 0; i < delays.length; i++) {
                 try {
                     const res = await fetch(url, { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'application/json' } });
                     if (!res.ok) throw new Error();
                     const json = await res.json();
                     return json.candidates?.[0]?.content?.parts?.[0]?.text || "";
                 } catch (e) {
-                    if (i === 4) return "Error de conexión. Revisa tu internet.";
-                    await new Promise(r => setTimeout(r, delay));
-                    delay *= 2;
+                    if (i === delays.length - 1) return "Error de red.";
+                    await new Promise(r => setTimeout(r, delays[i]));
                 }
             }
         }
 
         async function generateAISlogan() {
             const btn = document.getElementById('aiSloganBtn');
-            const originalText = btn.innerHTML;
             btn.disabled = true;
-            btn.innerHTML = `✨ Redactando<span class="loading-dots"></span>`;
-            
-            const sys = "Eres un experto en marketing de artículos para el hogar y dormitorio de lujo.";
-            const prompt = `Genera un slogan de venta corto y elegante (máximo 7 palabras) para una tienda de edredones premium de alta calidad. La temporada actual es: ${state.season === 'winter' ? 'Invierno (frío, abrigo)' : 'Verano (fresco, ligereza)'}. Responde solo el slogan.`;
-            
+            btn.innerHTML = `✨ Creando...`;
+            const sys = "Eres un experto en marketing de lujo para artículos de cama.";
+            const prompt = `Crea un slogan elegante de 6 palabras para edredones. Temporada: ${state.season}. Solo el texto.`;
             const result = await callGemini(prompt, sys);
             if (result && !result.includes("Error")) {
                 state.subtitle = result.replace(/"/g, '').trim();
                 render();
             }
-            btn.disabled = false;
-            btn.innerHTML = originalText;
+            btn.disabled = false; btn.innerHTML = `✨ Slogan AI`;
         }
 
         async function generateAIDesc() {
-            const btn = document.getElementById('aiDescBtn');
-            const textArea = document.getElementById('prodDescText');
-            const pName = state[state.season][currentEdit.cIdx].products[currentEdit.pIdx].name;
-            
-            if (!pName || pName === "Nuevo") {
-                alert("Primero ponle un nombre al producto.");
-                return;
-            }
-
-            const originalText = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = `✨ Creando<span class="loading-dots"></span>`;
-
-            const sys = "Eres un redactor creativo de fichas de producto de lujo.";
-            const prompt = `Redacta una descripción vendedora de máximo 25 palabras para un producto llamado "${pName}". Enfócate en la suavidad, calidad premium y confort. Responde solo la descripción sin etiquetas.`;
-
-            const result = await callGemini(prompt, sys);
-            if (result && !result.includes("Error")) {
-                textArea.value = result.trim();
-            }
-            btn.disabled = false;
-            btn.innerHTML = originalText;
+            const p = state[state.season][currentEdit.cIdx].products[currentEdit.pIdx];
+            if (!p.name || p.name === "Producto") return showAlert("Primero pon un nombre al producto.");
+            const prompt = `Escribe una descripción de 15 palabras para "${p.name}". Enfócate en suavidad y lujo. Solo texto.`;
+            const result = await callGemini(prompt, "Redactor de productos.");
+            if (result) { document.getElementById('prodDescText').value = result.trim(); }
         }
 
-        // --- CORE CATALOG LOGIC ---
-        let isEditMode = false;
-        let isAdminActive = false;
-        let isTextMode = false;
-        let currentEdit = { cIdx: null, pIdx: null }; 
-        let logoClicks = 0;
-        let clickTimer = null;
-
-        const DEFAULTS = {
-            titleSize: 24, subtitleSize: 14, nameSize: 16, descSize: 11, priceSize: 22, priceOriginalSize: 12, catNameSize: 10
-        };
-
-        let state = {
-            season: 'winter', whatsapp: '5111133344', wsText: 'WhatsApp', wsColor: '#25D366',
-            logo: 'https://cdn-icons-png.flaticon.com/512/6103/6103079.png', title: 'EDREDONES PREMIUM',
-            titleSize: DEFAULTS.titleSize, subtitle: 'Calidad y confort garantizado', subtitleSize: DEFAULTS.subtitleSize,
-            winter: [], summer: []
-        };
-
+        // --- FUNCIONES DEL CATALOGO ---
         function init() {
-            const saved = localStorage.getItem('catalogo_v26_ai_master');
+            const saved = localStorage.getItem('catalogo_v3_optimized');
             if (saved) {
                 state = { ...state, ...JSON.parse(saved) };
-                migrarDatos();
             } else {
-                // Datos por defecto (mismo que anterior)
-                state.winter = [
-                    { id: 1, name: "LÍNEA HOTELERA", icon: "https://via.placeholder.com/150/e0e7ff/000000?text=HOTEL", nameSize: 10, products: [
-                        { name: "Edredón Blanco Deluxe", nameSize: 16, description: "Microfibra tacto seda, relleno siliconado.", descSize: 11, price: "S/ 250", priceSize: 22, hasDiscount: true, discountValue: 20, thumb: "https://via.placeholder.com/400x500", zoom: "" },
-                        { name: "Edredón Gris Perla", nameSize: 16, description: "Elegancia y abrigo para tu habitación.", descSize: 11, price: "S/ 250", priceSize: 22, hasDiscount: false, discountValue: 0, thumb: "https://via.placeholder.com/400x500", zoom: "" }
-                    ]}
-                ];
-                state.summer = [
-                    { id: 5, name: "SÁBANAS ALGODÓN", icon: "https://via.placeholder.com/150/ffedd5/000000?text=SABANAS", nameSize: 10, products: [
-                        { name: "Juego 200 Hilos", nameSize: 16, description: "Algodón pima, frescura total.", descSize: 11, price: "S/ 120", priceSize: 22, hasDiscount: true, discountValue: 10, thumb: "https://via.placeholder.com/400x500", zoom: "" },
-                        { name: "Juego 400 Hilos", nameSize: 16, description: "Suavidad satinada premium.", descSize: 11, price: "S/ 190", priceSize: 22, hasDiscount: false, discountValue: 0, thumb: "https://via.placeholder.com/400x500", zoom: "" }
-                    ]}
-                ];
+                state.winter = [{ id: 1, name: "NUEVA COLECCIÓN", icon: state.logo, nameSize: 10, products: [
+                    { name: "Edredón Luxury", nameSize: 16, description: "Textura ultra suave y térmica.", descSize: 11, price: "S/ 199", priceSize: 22, hasDiscount: true, discountValue: 10, thumb: "https://via.placeholder.com/400x500/1e3a8a/fff?text=EDREDON", zoom: "" }
+                ]}];
             }
             render();
         }
 
-        function migrarDatos() {
-            if(!state.titleSize) state.titleSize = DEFAULTS.titleSize;
-            if(!state.subtitleSize) state.subtitleSize = DEFAULTS.subtitleSize;
-            ['winter', 'summer'].forEach(s => {
-                if(state[s]) {
-                    state[s].forEach(cat => {
-                        if(!cat.nameSize) cat.nameSize = DEFAULTS.catNameSize;
-                        cat.products.forEach(p => {
-                            if(!p.nameSize) p.nameSize = DEFAULTS.nameSize;
-                            if(!p.descSize) p.descSize = DEFAULTS.descSize;
-                            if(!p.priceSize) p.priceSize = DEFAULTS.priceSize;
-                            if(!p.priceOriginalSize) p.priceOriginalSize = DEFAULTS.priceOriginalSize;
-                        });
-                    });
-                }
-            });
-        }
-
         function handleLogoSecret() {
-            const logo = document.getElementById('logoContainer');
-            logo.classList.remove('logo-active');
-            void logo.offsetWidth; 
-            logo.classList.add('logo-active');
-            if (isAdminActive) { openConfigModal('logo'); return; }
             logoClicks++;
             clearTimeout(clickTimer);
-            if (logoClicks >= 5) { logoClicks = 0; enterAdminMode(); } 
-            else { clickTimer = setTimeout(() => { logoClicks = 0; }, 2000); }
+            if (logoClicks >= 5) { logoClicks = 0; enterAdminMode(); }
+            else { clickTimer = setTimeout(() => logoClicks = 0, 2000); }
         }
 
-        function enterAdminMode() { isAdminActive = true; isEditMode = true; document.getElementById('adminPanel').classList.remove('hidden'); document.getElementById('adminPanel').classList.add('flex'); document.getElementById('bodyTag').className = 'h-full edit-mode'; render(); }
-        function closeAdminPanel() { isAdminActive = false; isEditMode = false; isTextMode = false; document.getElementById('adminPanel').classList.add('hidden'); document.getElementById('adminPanel').classList.remove('flex'); document.getElementById('bodyTag').className = 'h-full view-mode'; render(); }
-        function toggleViewMode() { isEditMode = !isEditMode; isTextMode = false; document.getElementById('modeBtn').innerText = isEditMode ? '👁️ CLIENTE' : '🛠️ EDITAR'; document.getElementById('bodyTag').className = isEditMode ? 'h-full edit-mode' : 'h-full view-mode'; render(); }
-        function toggleTextMode() { isTextMode = !isTextMode; document.getElementById('bodyTag').classList.toggle('text-edit-active', isTextMode); render(); }
+        function enterAdminMode() { 
+            isAdminActive = true; isEditMode = true; 
+            document.getElementById('adminPanel').classList.replace('hidden', 'flex'); 
+            document.getElementById('bodyTag').className = 'h-full edit-mode'; 
+            render(); 
+        }
+
+        function closeAdminPanel() { 
+            isAdminActive = isEditMode = isTextMode = false;
+            document.getElementById('adminPanel').classList.replace('flex', 'hidden');
+            document.getElementById('bodyTag').className = 'h-full view-mode';
+            render();
+        }
+
+        function toggleViewMode() { 
+            isEditMode = !isEditMode;
+            document.getElementById('modeBtn').innerText = isEditMode ? '👁️ Modo Cliente' : '🛠️ Modo Editor';
+            document.getElementById('bodyTag').className = isEditMode ? 'h-full edit-mode' : 'h-full view-mode';
+            render();
+        }
+
+        function toggleTextMode() {
+            isTextMode = !isTextMode;
+            document.getElementById('bodyTag').classList.toggle('text-edit-active', isTextMode);
+        }
 
         function updateSize(type, cIdx, pIdx, key, val) {
-            val = Math.max(1, Math.min(100, val));
+            val = Math.max(1, 100, val);
             if (type === 'global') state[key] = val;
             else if (type === 'cat') state[state.season][cIdx][key] = val;
             else if (type === 'prod') state[state.season][cIdx].products[pIdx][key] = val;
             render();
         }
 
-        function renderSizeControl(currentVal, type, cIdx, pIdx, key, defaultVal) {
+        function renderSizeControl(currentVal, type, cIdx, pIdx, key, def) {
             const args = `'${type}', ${cIdx}, ${pIdx}, '${key}'`;
-            return `
-                <div class="size-btn" onclick="updateSize(${args}, ${currentVal - 1})">▼</div>
-                <input type="number" class="size-input" value="${currentVal}" onchange="updateSize(${args}, parseInt(this.value))">
-                <div class="size-btn" onclick="updateSize(${args}, ${currentVal + 1})">▲</div>
-                <div class="size-btn reset" onclick="updateSize(${args}, ${defaultVal})" title="Restaurar">↺</div>
-            `;
-        }
-
-        function toggleDescription(cIdx, pIdx) {
-            const el = document.getElementById(`desc-${cIdx}-${pIdx}`);
-            const btn = document.getElementById(`btn-desc-${cIdx}-${pIdx}`);
-            if (el.classList.contains('line-clamp-3')) { el.classList.remove('line-clamp-3'); btn.innerText = 'Ver menos'; } 
-            else { el.classList.add('line-clamp-3'); btn.innerText = 'Ver más'; }
+            return `<div class="size-btn" onclick="updateSize(${args}, ${currentVal - 1})">▼</div>
+                    <input type="number" class="size-input" value="${currentVal}" onchange="updateSize(${args}, parseInt(this.value))">
+                    <div class="size-btn" onclick="updateSize(${args}, ${currentVal + 1})">▲</div>
+                    <div class="size-btn reset" onclick="updateSize(${args}, ${def})">↺</div>`;
         }
 
         function render() {
             const isW = state.season === 'winter';
             const data = state[state.season];
-            document.getElementById('mainHeader').className = `text-center pt-8 pb-10 px-2 text-white relative rounded-b-[3rem] shadow-xl transition-all duration-700 ${isW ? 'winter-theme' : 'summer-theme'}`;
             
-            const titleEl = document.getElementById('storeTitle');
-            titleEl.innerText = state.title;
-            titleEl.style.fontSize = state.titleSize + 'px';
-            titleEl.contentEditable = isEditMode;
-            titleEl.onblur = (e) => { state.title = e.target.innerText; };
+            // Render Header
+            document.getElementById('mainHeader').className = `text-center pt-8 pb-10 winter-theme text-white relative rounded-b-[3rem] shadow-xl transition-all ${isW ? 'winter-theme' : 'summer-theme'}`;
+            document.getElementById('storeLogo').src = state.logo;
+            
+            const title = document.getElementById('storeTitle');
+            title.innerText = state.title; title.style.fontSize = state.titleSize + 'px';
+            title.contentEditable = isEditMode;
+            title.onblur = (e) => state.title = e.target.innerText;
             document.getElementById('ctrl-title').innerHTML = renderSizeControl(state.titleSize, 'global', 0, 0, 'titleSize', DEFAULTS.titleSize);
 
-            const subEl = document.getElementById('storeSubtitle');
-            subEl.innerText = state.subtitle;
-            subEl.style.fontSize = state.subtitleSize + 'px';
-            subEl.contentEditable = isEditMode;
-            subEl.onblur = (e) => { state.subtitle = e.target.innerText; };
+            const subtitle = document.getElementById('storeSubtitle');
+            subtitle.innerText = state.subtitle; subtitle.style.fontSize = state.subtitleSize + 'px';
+            subtitle.contentEditable = isEditMode;
+            subtitle.onblur = (e) => state.subtitle = e.target.innerText;
             document.getElementById('ctrl-subtitle').innerHTML = renderSizeControl(state.subtitleSize, 'global', 0, 0, 'subtitleSize', DEFAULTS.subtitleSize);
 
-            document.getElementById('storeLogo').src = state.logo;
-
-            const nav = document.getElementById('circleNav');
-            nav.innerHTML = data.map((cat, idx) => `
+            // Render Nav
+            document.getElementById('circleNav').innerHTML = data.map((cat, idx) => `
                 <div class="flex flex-col items-center gap-2 cursor-pointer min-w-[5.5rem] shrink-0" onclick="scrollToSection(${idx})">
-                    <div class="relative w-16 h-16 rounded-full border-2 border-white p-0.5 bg-white shadow overflow-hidden">
-                        <img src="${cat.icon}" class="w-full h-full object-cover rounded-full">
-                        <div onclick="event.stopPropagation(); openConfigModal('catIcon', ${idx})" class="admin-only absolute inset-0 bg-black/60 flex items-center justify-center text-[9px] text-white font-black opacity-0 hover:opacity-100 transition-opacity uppercase">FOTO</div>
+                    <div class="relative w-16 h-16 rounded-full border-2 border-white bg-white shadow overflow-hidden">
+                        <img src="${cat.icon}" class="w-full h-full object-cover">
                     </div>
-                    <div class="relative-text">
-                        <span contenteditable="${isEditMode}" onblur="state['${state.season}'][${idx}].name = this.innerText" style="font-size: ${cat.nameSize}px" class="font-black text-gray-700 uppercase truncate max-w-[5rem] block editable">${cat.name}</span>
-                        <div class="size-control admin-only">${renderSizeControl(cat.nameSize, 'cat', idx, 0, 'nameSize', DEFAULTS.catNameSize)}</div>
-                    </div>
-                </div>
-            `).join('');
+                    <span style="font-size: ${cat.nameSize}px" class="font-black text-gray-700 uppercase editable">${cat.name}</span>
+                </div>`).join('');
 
-            const content = document.getElementById('mainContent');
-            content.innerHTML = data.map((cat, cIdx) => `
-                <section id="cat-${cIdx}" class="bg-white p-0 rounded-[24px] shadow-sm border border-gray-100 mb-8 scroll-mt-20 overflow-hidden">
-                    <div class="flex justify-between items-center border-b border-gray-50 pb-2 mb-4 px-4 pt-4">
-                        <h2 contenteditable="${isEditMode}" onblur="state['${state.season}'][${cIdx}].name = this.innerText" class="text-xl md:text-3xl font-black text-gray-800 uppercase editable border-b-4 ${isW ? 'border-blue-600' : 'border-orange-600'} tracking-tighter">${cat.name}</h2>
+            // Render Content
+            document.getElementById('mainContent').innerHTML = data.map((cat, cIdx) => `
+                <section id="cat-${cIdx}" class="bg-white rounded-[24px] shadow-sm mb-8 overflow-hidden">
+                    <div class="flex justify-between items-center px-4 pt-4 border-b border-gray-50 pb-2 mb-4">
+                        <h2 class="text-xl font-black text-gray-800 uppercase border-b-4 ${isW ? 'border-blue-600' : 'border-orange-600'}">${cat.name}</h2>
                         <div class="admin-only flex gap-1">
-                            <button onclick="replicateData(${cIdx})" class="text-[8px] bg-indigo-50 text-indigo-700 px-2 py-1 rounded-lg font-black uppercase">⚡</button>
-                            <button onclick="deleteAction('cat', ${cIdx})" class="text-[8px] bg-red-50 text-red-600 px-2 py-1 rounded-lg font-black uppercase">🗑️</button>
+                            <button onclick="deleteAction('cat', ${cIdx})" class="text-[8px] bg-red-50 text-red-600 px-2 py-1 rounded-lg font-black">BORRAR</button>
                         </div>
                     </div>
                     <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 pb-4 px-1">
-                        ${cat.products.map((p, pIdx) => {
-                            const discVal = p.discountValue || 0;
-                            const finalPrice = p.hasDiscount ? calculateDiscount(p.price, discVal) : p.price;
-                            const priceOrigSize = p.priceOriginalSize || DEFAULTS.priceOriginalSize;
-                            return `
-                            <div class="product-card flex flex-col h-full bg-white">
-                                <div class="aspect-[4/5] bg-gray-50 relative overflow-hidden">
-                                    <img src="${p.thumb}" class="w-full h-full object-cover ${!isEditMode ? 'cursor-zoom-in' : ''}" onclick="${!isEditMode ? `openZoom('${p.zoom || p.thumb}')` : ''}">
-                                    ${ p.hasDiscount && discVal > 0 ? `<div class="discount-badge">-${discVal}%</div>` : '' }
-                                    <div class="admin-only absolute inset-0 bg-black/50 flex flex-col items-center justify-center gap-2 opacity-0 hover:opacity-100 transition-opacity p-2 text-center">
-                                        <button onclick="openEditProductModal(${cIdx}, ${pIdx})" class="w-full bg-white text-[8px] font-black py-1.5 rounded-full uppercase shadow">Ficha</button>
-                                        <button onclick="toggleDiscount(${cIdx}, ${pIdx})" class="w-full ${p.hasDiscount ? 'bg-red-600 text-white' : 'bg-gray-100 text-gray-800'} text-[8px] font-black py-1.5 rounded-full uppercase">${p.hasDiscount ? 'CON OFF' : 'SIN OFF'}</button>
-                                        <button onclick="deleteAction('prod', ${cIdx}, ${pIdx})" class="w-full bg-red-900 text-white text-[8px] font-black py-1.5 rounded-full uppercase">Borrar</button>
-                                    </div>
-                                </div>
-                                <div class="p-2 flex flex-col flex-1">
-                                    <div class="relative-text">
-                                        <h4 contenteditable="${isEditMode}" onblur="updateProd(${cIdx}, ${pIdx}, 'name', this.innerText)" style="font-size: ${p.nameSize}px" class="font-black text-gray-800 leading-tight mb-1 editable line-clamp-2 min-h-[2.4em]">${p.name}</h4>
-                                        <div class="size-control admin-only">${renderSizeControl(p.nameSize, 'prod', cIdx, pIdx, 'nameSize', DEFAULTS.nameSize)}</div>
-                                    </div>
-                                    <div class="mb-2 relative-text">
-                                        <div id="desc-${cIdx}-${pIdx}" contenteditable="${isEditMode}" onblur="updateProd(${cIdx}, ${pIdx}, 'description', this.innerText)" style="font-size: ${p.descSize}px" class="text-gray-400 leading-tight editable ${!isEditMode ? 'line-clamp-3' : ''}">${p.description}</div>
-                                        <div class="size-control admin-only">${renderSizeControl(p.descSize, 'prod', cIdx, pIdx, 'descSize', DEFAULTS.descSize)}</div>
-                                        ${!isEditMode && p.description.length > 50 ? `
-                                            <button id="btn-desc-${cIdx}-${pIdx}" onclick="toggleDescription(${cIdx}, ${pIdx})" class="text-[9px] font-bold text-blue-500 uppercase mt-1">Ver más</button>
-                                        ` : ''}
-                                    </div>
-                                    <div class="mt-auto">
-                                        <div class="flex flex-row items-baseline gap-1 mb-2 relative-text">
-                                            <p contenteditable="${isEditMode}" onblur="updateProd(${cIdx}, ${pIdx}, 'price', this.innerText); render()" style="font-size: ${p.priceSize}px" class="text-blue-600 font-black leading-none editable order-1 whitespace-nowrap">${p.hasDiscount ? finalPrice : p.price}</p>
-                                            <div class="size-control admin-only">${renderSizeControl(p.priceSize, 'prod', cIdx, pIdx, 'priceSize', DEFAULTS.priceSize)}</div>
-                                            ${ p.hasDiscount ? `
-                                                <div class="relative-text order-2 ml-1">
-                                                    <p class="text-red-500 line-through font-bold opacity-70 whitespace-nowrap" style="font-size: ${priceOrigSize}px">${p.price}</p>
-                                                    <div class="size-control admin-only">${renderSizeControl(priceOrigSize, 'prod', cIdx, pIdx, 'priceOriginalSize', DEFAULTS.priceOriginalSize)}</div>
-                                                </div>
-                                            ` : '' }
-                                        </div>
-                                        <button onclick="sendWhatsapp(${cIdx}, ${pIdx})" style="background-color: ${state.wsColor};" class="hover:brightness-90 active:scale-95 text-white text-[10px] font-bold py-3 rounded-xl w-full flex items-center justify-center gap-1.5 shadow-md transition-all uppercase">
-                                            <svg viewBox="0 0 24 24" width="14" height="14" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.445 0 .081 5.391.079 11.99c0 2.112.553 4.177 1.597 6.011L0 24l6.193-1.623c1.776.969 3.79 1.481 5.848 1.482h.005c6.605 0 11.97-5.392 11.972-11.992a11.9 11.9 0 00-3.51-8.474z"/></svg>
-                                            ${state.wsText}
-                                        </button>
-                                    </div>
+                        ${cat.products.map((p, pIdx) => `
+                        <div class="product-card bg-white border border-gray-100 rounded-xl overflow-hidden flex flex-col h-full">
+                            <div class="aspect-[4/5] bg-gray-50 relative overflow-hidden">
+                                <img src="${p.thumb}" loading="lazy" class="w-full h-full object-cover cursor-zoom-in" onclick="openZoom('${p.thumb}')">
+                                ${p.hasDiscount ? `<div class="discount-badge">-${p.discountValue}%</div>` : ''}
+                                <div class="admin-only absolute inset-0 bg-black/50 flex flex-col items-center justify-center gap-2 opacity-0 hover:opacity-100 transition-all p-2">
+                                    <button onclick="openEditProductModal(${cIdx}, ${pIdx})" class="w-full bg-white text-[9px] font-black py-2 rounded-lg uppercase">Configurar</button>
                                 </div>
                             </div>
-                        `}).join('')}
-                        <div onclick="addProduct(${cIdx})" class="admin-only aspect-[4/5] flex flex-col items-center justify-center text-gray-300 cursor-pointer text-4xl hover:bg-gray-50 bg-white rounded-2xl border-2 border-dashed border-gray-100">+</div>
+                            <div class="p-2 flex flex-col flex-1">
+                                <h4 contenteditable="${isEditMode}" onblur="updateProd(${cIdx}, ${pIdx}, 'name', this.innerText)" style="font-size: ${p.nameSize}px" class="font-black text-gray-800 editable">${p.name}</h4>
+                                <p contenteditable="${isEditMode}" onblur="updateProd(${cIdx}, ${pIdx}, 'description', this.innerText)" style="font-size: ${p.descSize}px" class="text-gray-400 leading-tight mb-2 editable">${p.description}</p>
+                                <div class="mt-auto">
+                                    <p class="text-blue-600 font-black text-lg">${p.hasDiscount ? calculateDiscount(p.price, p.discountValue) : p.price}</p>
+                                    <button onclick="sendWhatsapp(${cIdx}, ${pIdx})" style="background-color: ${state.wsColor}" class="w-full py-3 text-white font-bold text-[10px] rounded-xl uppercase mt-2">${state.wsText}</button>
+                                </div>
+                            </div>
+                        </div>`).join('')}
+                        <div onclick="addProduct(${cIdx})" class="admin-only aspect-[4/5] flex items-center justify-center text-gray-300 cursor-pointer text-4xl hover:bg-gray-100 bg-white rounded-xl border-2 border-dashed border-gray-100">+</div>
                     </div>
-                </section>
-            `).join('');
+                </section>`).join('');
+
             updateSeasonButtons();
         }
 
         function updateSeasonButtons() {
             const isW = state.season === 'winter';
-            document.getElementById('btnWinter').className = isW ? 'flex-1 py-3 rounded-full text-sm md:text-lg font-black winter-theme text-white shadow active:scale-95 transition-all' : 'flex-1 py-3 rounded-full text-sm md:text-lg font-black bg-gray-100 text-gray-400 active:scale-95 transition-all';
-            document.getElementById('btnSummer').className = !isW ? 'flex-1 py-3 rounded-full text-sm md:text-lg font-black summer-theme text-white shadow active:scale-95 transition-all' : 'flex-1 py-3 rounded-full text-sm md:text-lg font-black bg-gray-100 text-gray-400 active:scale-95 transition-all';
+            document.getElementById('btnWinter').className = `flex-1 py-3 rounded-full text-sm font-black transition-all ${isW ? 'winter-theme text-white shadow' : 'bg-gray-100 text-gray-400'}`;
+            document.getElementById('btnSummer').className = `flex-1 py-3 rounded-full text-sm font-black transition-all ${!isW ? 'summer-theme text-white shadow' : 'bg-gray-100 text-gray-400'}`;
         }
 
-        function openWhatsappConfig() { document.getElementById('wsNumber').value = state.whatsapp; document.getElementById('wsText').value = state.wsText; document.getElementById('wsColor').value = state.wsColor; document.getElementById('whatsappModal').classList.add('active'); }
-        function saveWhatsappConfig() { state.whatsapp = document.getElementById('wsNumber').value.replace(/\D/g, ''); state.wsText = document.getElementById('wsText').value; state.wsColor = document.getElementById('wsColor').value; render(); document.getElementById('whatsappModal').classList.remove('active'); }
-        function openConfigModal(type, extra = null) { const modal = document.getElementById('configModal'); const input = document.getElementById('configInput'); const saveBtn = document.getElementById('configSaveBtn'); if (type === 'logo') { document.getElementById('configTitle').innerText = "URL Logo"; input.value = state.logo; saveBtn.onclick = () => { state.logo = input.value; render(); modal.classList.remove('active'); }; } else if (type === 'catIcon') { document.getElementById('configTitle').innerText = "Icono Categoría"; input.value = state[state.season][extra].icon; saveBtn.onclick = () => { state[state.season][extra].icon = input.value; render(); modal.classList.remove('active'); }; } modal.classList.add('active'); input.focus(); }
-        function openEditProductModal(cIdx, pIdx) { currentEdit = { cIdx, pIdx }; const p = state[state.season][cIdx].products[pIdx]; document.getElementById('prodThumb').value = p.thumb; document.getElementById('prodZoom').value = p.zoom || ""; document.getElementById('prodDiscount').value = p.discountValue || 0; document.getElementById('prodDescText').value = p.description || ""; document.getElementById('editProductModal').classList.add('active'); }
-        function saveProductModalChanges() { const p = state[state.season][currentEdit.cIdx].products[currentEdit.pIdx]; p.thumb = document.getElementById('prodThumb').value; p.zoom = document.getElementById('prodZoom').value; p.discountValue = parseInt(document.getElementById('prodDiscount').value) || 0; p.description = document.getElementById('prodDescText').value; render(); document.getElementById('editProductModal').classList.remove('active'); }
-        function deleteAction(type, cIdx, pIdx = null) { if(confirm("¿Seguro?")) { if (type === 'cat') state[state.season].splice(cIdx, 1); else state[state.season][cIdx].products.splice(pIdx, 1); render(); } }
-        function updateProd(c, p, k, v) { state[state.season][c].products[p][k] = v; }
+        // --- MANEJO DE CONFIGURACIONES ---
+        function saveToStorage() { localStorage.setItem('catalogo_v3_optimized', JSON.stringify(state)); showAlert("Cambios guardados correctamente."); }
+        function openWhatsappConfig() { document.getElementById('wsNumber').value = state.whatsapp; document.getElementById('wsColor').value = state.wsColor; document.getElementById('whatsappModal').classList.add('active'); }
+        function saveWhatsappConfig() { state.whatsapp = document.getElementById('wsNumber').value; state.wsText = document.getElementById('wsText').value; state.wsColor = document.getElementById('wsColor').value; render(); document.getElementById('whatsappModal').classList.remove('active'); }
+        function openEditProductModal(c, p) { currentEdit = { cIdx: c, pIdx: p }; const prod = state[state.season][c].products[p]; document.getElementById('prodThumb').value = prod.thumb; document.getElementById('prodDiscount').value = prod.discountValue; document.getElementById('prodDescText').value = prod.description; document.getElementById('editProductModal').classList.add('active'); }
+        function saveProductModalChanges() { const prod = state[state.season][currentEdit.cIdx].products[currentEdit.pIdx]; prod.thumb = document.getElementById('prodThumb').value; prod.discountValue = parseInt(document.getElementById('prodDiscount').value); prod.description = document.getElementById('prodDescText').value; render(); document.getElementById('editProductModal').classList.remove('active'); }
         function switchSeason(s) { state.season = s; render(); }
-        function toggleDiscount(c, p) { state[state.season][c].products[p].hasDiscount = !state[state.season][c].products[p].hasDiscount; render(); }
-        function saveToStorage() { localStorage.setItem('catalogo_v26_ai_master', JSON.stringify(state)); document.getElementById('successModal').classList.add('active'); }
-        function sendWhatsapp(cIdx, pIdx) { const p = state[state.season][cIdx].products[pIdx]; const finalPrice = p.hasDiscount ? calculateDiscount(p.price, p.discountValue) : p.price; const text = `🛍️ *PEDIDO*\n*Producto*: ${p.name.toUpperCase()}\n*Precio*: ${finalPrice}\n*Foto*: ${p.thumb}`; window.open(`https://wa.me/${state.whatsapp}?text=${encodeURIComponent(text)}`, '_blank'); }
-        function scrollToSection(idx) { const el = document.getElementById(`cat-${idx}`); if(el) window.scrollTo({top: el.offsetTop - 70, behavior: 'smooth'}); }
+        function addCategory() { state[state.season].push({ id: Date.now(), name: "NUEVA", icon: state.logo, nameSize: 10, products: [] }); render(); }
+        function addProduct(i) { state[state.season][i].products.push({ name: "Producto", nameSize: 16, description: "...", descSize: 11, price: "S/ 100", hasDiscount: false, discountValue: 0, thumb: "https://via.placeholder.com/400x500", zoom: "" }); render(); }
+        function deleteAction(t, c) { if(confirm("¿Seguro?")) { state[state.season].splice(c, 1); render(); } }
+        function updateProd(c, p, k, v) { state[state.season][c].products[p][k] = v; }
+        function calculateDiscount(p, d) { let n = parseFloat(p.replace(/[^0-9.]/g, '')); return "S/ " + (n * (100 - d) / 100).toFixed(0); }
         function openZoom(u) { document.getElementById('modalImg').src = u; document.getElementById('imageModal').classList.add('active'); }
-        function closeZoom() { document.getElementById('imageModal').classList.remove('active'); }
-        function addCategory() { state[state.season].push({ id: Date.now(), name: "NUEVA", icon: "https://via.placeholder.com/150", nameSize: 10, products: [] }); render(); }
-        function addProduct(i) { state[state.season][i].products.push({ name: "Producto", nameSize: 16, description: "...", descSize: 11, price: "S/ 0", priceSize: 22, hasDiscount: false, discountValue: 0, priceOriginalSize: 12, thumb: "https://via.placeholder.com/400x500", zoom: "" }); render(); }
-        function replicateData(cIdx) { const p = state[state.season][cIdx].products; if(p.length < 2) return; const s = p[0]; for(let i=1; i<p.length; i++) { p[i].price = s.price; p[i].priceSize = s.priceSize; p[i].name = s.name; p[i].nameSize = s.nameSize; p[i].description = s.description; p[i].descSize = s.descSize; p[i].hasDiscount = s.hasDiscount; p[i].discountValue = s.discountValue; p[i].priceOriginalSize = s.priceOriginalSize; } render(); }
-        function calculateDiscount(priceStr, disc) { let n = parseFloat(priceStr.replace(/[^0-9.]/g, '')); if(isNaN(n)) return "S/ --"; let factor = (100 - disc) / 100; return "S/ " + (n * factor).toFixed(0); }
+        function scrollToSection(i) { const el = document.getElementById(`cat-${i}`); if(el) window.scrollTo({top: el.offsetTop - 70, behavior: 'smooth'}); }
+        function sendWhatsapp(c, p) { const prod = state[state.season][c].products[p]; const price = prod.hasDiscount ? calculateDiscount(prod.price, prod.discountValue) : prod.price; const text = `Hola, me interesa el producto: ${prod.name.toUpperCase()}\nPrecio: ${price}\nImagen: ${prod.thumb}`; window.open(`https://wa.me/${state.whatsapp}?text=${encodeURIComponent(text)}`, '_blank'); }
 
-        init();
+        window.onload = init;
     </script>
 </body>
 </html>
