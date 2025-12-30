@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Catálogo Pro - Control Total</title>
+    <title>Catálogo Pro - Control AI Gemini</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* Tipografía y Base */
@@ -31,27 +31,30 @@
         /* CONTROL DE TAMAÑO DE TEXTO */
         .size-control {
             position: absolute;
-            top: -40px;
+            top: -45px;
             left: 50%;
             transform: translateX(-50%);
             background: white;
             border: 1px solid #cbd5e1;
-            border-radius: 10px;
+            border-radius: 8px;
             display: none;
             align-items: center;
             padding: 4px;
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.15);
             z-index: 5000;
-            gap: 4px;
+            gap: 2px;
+            white-space: nowrap;
         }
         .text-edit-active .size-control { display: flex; }
         .size-btn {
-            width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
-            background: #f1f5f9; border-radius: 6px; cursor: pointer; font-size: 12px; color: #1e293b; font-weight: bold;
+            width: 26px; height: 26px; display: flex; align-items: center; justify-content: center;
+            background: #f1f5f9; border-radius: 4px; cursor: pointer; font-size: 10px; color: #334155; font-weight: bold;
+            transition: background 0.2s;
         }
-        .size-btn:active { background: #e2e8f0; transform: scale(0.9); }
+        .size-btn:active { background: #cbd5e1; transform: scale(0.95); }
+        .size-btn.reset { color: #2563eb; background: #eff6ff; }
         .size-input {
-            width: 40px; text-align: center; font-size: 12px; font-weight: 800; border: none; outline: none; background: transparent;
+            width: 30px; text-align: center; font-size: 12px; font-weight: 800; border: none; outline: none; background: transparent;
         }
 
         /* BADGE DESCUENTO */
@@ -64,19 +67,16 @@
         /* MODALES */
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 9999; backdrop-filter: blur(5px); }
         .modal-overlay.active { display: flex; }
-        .modal-window { background: white; width: 95%; max-width: 400px; padding: 25px; border-radius: 24px; }
+        .modal-window { background: white; width: 95%; max-width: 400px; padding: 25px; border-radius: 24px; max-height: 90vh; overflow-y: auto; }
 
-        /* Ajustes Header */
         header { padding-top: 1rem !important; padding-bottom: 2.5rem !important; }
         .season-selector { margin-top: -1.8rem !important; }
 
         .nav-container { width: 100%; overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; padding: 8px 0; touch-action: pan-x; }
 
-        /* Animación Clic Logo */
         .logo-active { animation: logoPress 0.2s ease; }
         @keyframes logoPress { 0% { transform: scale(1); } 50% { transform: scale(0.9); } 100% { transform: scale(1); } }
 
-        /* Cuadro de producto */
         .product-card { 
             border-radius: 16px; 
             transition: transform 0.2s; 
@@ -87,13 +87,15 @@
             border: 1px solid #f1f5f9;
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         }
-        .relative-text { position: relative; }
+        .relative-text { position: relative; display: inline-block; max-width: 100%; }
+        .main-container-optimized { padding-left: 4px; padding-right: 4px; }
 
-        /* Ajuste de margen lateral de 1mm exacto (aprox 4px) */
-        .main-container-optimized {
-            padding-left: 4px;
-            padding-right: 4px;
-        }
+        /* Estilos IA ✨ */
+        .ai-sparkle { background: linear-gradient(90deg, #6366f1, #a855f7); color: white; border-radius: 8px; padding: 4px 8px; font-size: 10px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s; border: none; }
+        .ai-sparkle:hover { transform: scale(1.05); opacity: 0.9; }
+        .ai-sparkle:disabled { opacity: 0.5; cursor: not-allowed; }
+        .loading-dots:after { content: '.'; animation: dots 1.5s steps(5, end) infinite; }
+        @keyframes dots { 0%, 20% { content: '.'; } 40% { content: '..'; } 60% { content: '...'; } 80%, 100% { content: ''; } }
     </style>
 </head>
 <body id="bodyTag" class="h-full view-mode">
@@ -113,17 +115,21 @@
     <header id="mainHeader" class="text-center winter-theme text-white relative rounded-b-[3rem] shadow-xl transition-all duration-500">
         <div id="logoContainer" class="w-20 h-20 md:w-28 md:h-28 mx-auto mb-2 bg-white rounded-full p-1 shadow-inner overflow-hidden relative cursor-pointer" onclick="handleLogoSecret()">
             <img id="storeLogo" src="https://via.placeholder.com/200?text=LOGO" class="w-full h-full object-contain rounded-full">
-            <div class="admin-only absolute inset-0 bg-black/50 flex items-center justify-center text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity">Editar</div>
+            <div class="admin-only absolute inset-0 bg-black/50 flex items-center justify-center text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity uppercase text-white">Editar</div>
         </div>
         
-        <div class="relative-text inline-block px-4">
-            <h1 id="storeTitle" class="font-black uppercase leading-none mb-1 tracking-tighter">EDREDONES PREMIUM</h1>
+        <div class="relative-text inline-block px-4 max-w-full">
+            <h1 id="storeTitle" class="font-black uppercase leading-none mb-1 tracking-tighter whitespace-nowrap">EDREDONES PREMIUM</h1>
             <div class="size-control admin-only" id="ctrl-title"></div>
         </div>
         <br>
-        <div class="relative-text inline-block px-4">
+        <div class="relative-text inline-block px-4 group">
             <p id="storeSubtitle" class="opacity-90 italic">Calidad y confort garantizado</p>
             <div class="size-control admin-only" id="ctrl-subtitle"></div>
+            <!-- IA Slogan -->
+            <div class="admin-only absolute -bottom-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button id="aiSloganBtn" onclick="generateAISlogan()" class="ai-sparkle">✨ Slogan AI</button>
+            </div>
         </div>
     </header>
 
@@ -142,7 +148,7 @@
         </div>
     </nav>
 
-    <!-- PRODUCTOS (MARGEN DE 1 MM) -->
+    <!-- PRODUCTOS -->
     <main id="mainContent" class="main-container-optimized py-4 space-y-8 pb-40 max-w-full overflow-hidden"></main>
 
     <!-- BOTÓN AÑADIR -->
@@ -181,28 +187,45 @@
         </div>
     </div>
 
-    <div id="successModal" class="modal-overlay" style="z-index: 9000;">
-        <div class="modal-window text-center">
-            <div class="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">✓</div>
-            <h3 class="text-xl font-black text-gray-800 mb-2 uppercase">¡Guardado!</h3>
-            <p class="text-xs text-gray-500 mb-6">Los cambios se guardaron con éxito en este equipo.</p>
-            <button onclick="document.getElementById('successModal').classList.remove('active')" class="w-full bg-gray-900 text-white py-3 rounded-xl font-bold text-xs uppercase">Aceptar</button>
-        </div>
-    </div>
-
-    <!-- EDITAR PRODUCTO -->
+    <!-- MODAL EDITAR PRODUCTO CON IA -->
     <div id="editProductModal" class="modal-overlay" style="z-index: 7000;">
         <div class="modal-window">
             <h3 class="text-lg font-black text-gray-800 mb-4 uppercase text-center">📦 Producto</h3>
             <div class="space-y-4">
-                <input type="text" id="prodThumb" class="w-full border p-3 text-xs rounded-xl" placeholder="Imagen Miniatura URL">
-                <input type="text" id="prodZoom" class="w-full border p-3 text-xs rounded-xl" placeholder="Imagen Zoom URL">
-                <input type="number" id="prodDiscount" class="w-full border p-3 text-xs rounded-xl" placeholder="% Descuento">
+                <div>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase">Miniatura URL</label>
+                    <input type="text" id="prodThumb" class="w-full border p-3 text-xs rounded-xl" placeholder="Imagen Miniatura URL">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase">Zoom URL</label>
+                    <input type="text" id="prodZoom" class="w-full border p-3 text-xs rounded-xl" placeholder="Imagen Zoom URL">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase">% Descuento</label>
+                    <input type="number" id="prodDiscount" class="w-full border p-3 text-xs rounded-xl" placeholder="% Descuento">
+                </div>
+                <div class="border-t pt-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="text-[10px] font-bold text-gray-400 uppercase">Descripción Inteligente</label>
+                        <button id="aiDescBtn" onclick="generateAIDesc()" class="ai-sparkle">✨ Redactar AI</button>
+                    </div>
+                    <textarea id="prodDescText" class="w-full border p-3 text-xs rounded-xl h-24 resize-none" placeholder="Escribe o usa la IA..."></textarea>
+                </div>
             </div>
             <div class="flex gap-2 mt-6">
                 <button onclick="document.getElementById('editProductModal').classList.remove('active')" class="flex-1 bg-gray-100 py-3 text-xs font-bold uppercase text-gray-500 rounded-xl">Cancelar</button>
                 <button onclick="saveProductModalChanges()" class="flex-1 bg-indigo-600 text-white py-3 text-xs font-bold uppercase rounded-xl">Aplicar</button>
             </div>
+        </div>
+    </div>
+
+    <!-- MODAL ÉXITO -->
+    <div id="successModal" class="modal-overlay" style="z-index: 9000;">
+        <div class="modal-window text-center">
+            <div class="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">✓</div>
+            <h3 class="text-xl font-black text-gray-800 mb-2 uppercase">¡Guardado!</h3>
+            <p class="text-xs text-gray-500 mb-6">Los cambios se guardaron con éxito.</p>
+            <button onclick="document.getElementById('successModal').classList.remove('active')" class="w-full bg-gray-900 text-white py-3 rounded-xl font-bold text-xs uppercase">Aceptar</button>
         </div>
     </div>
 
@@ -213,6 +236,75 @@
     </div>
 
     <script>
+        // --- GEMINI API INTEGRATION ---
+        const apiKey = "";
+        
+        async function callGemini(prompt, systemPrompt) {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            const payload = {
+                contents: [{ parts: [{ text: prompt }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] }
+            };
+            
+            let delay = 1000;
+            for (let i = 0; i < 5; i++) {
+                try {
+                    const res = await fetch(url, { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'application/json' } });
+                    if (!res.ok) throw new Error();
+                    const json = await res.json();
+                    return json.candidates?.[0]?.content?.parts?.[0]?.text || "";
+                } catch (e) {
+                    if (i === 4) return "Error de conexión. Revisa tu internet.";
+                    await new Promise(r => setTimeout(r, delay));
+                    delay *= 2;
+                }
+            }
+        }
+
+        async function generateAISlogan() {
+            const btn = document.getElementById('aiSloganBtn');
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `✨ Redactando<span class="loading-dots"></span>`;
+            
+            const sys = "Eres un experto en marketing de artículos para el hogar y dormitorio de lujo.";
+            const prompt = `Genera un slogan de venta corto y elegante (máximo 7 palabras) para una tienda de edredones premium de alta calidad. La temporada actual es: ${state.season === 'winter' ? 'Invierno (frío, abrigo)' : 'Verano (fresco, ligereza)'}. Responde solo el slogan.`;
+            
+            const result = await callGemini(prompt, sys);
+            if (result && !result.includes("Error")) {
+                state.subtitle = result.replace(/"/g, '').trim();
+                render();
+            }
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+
+        async function generateAIDesc() {
+            const btn = document.getElementById('aiDescBtn');
+            const textArea = document.getElementById('prodDescText');
+            const pName = state[state.season][currentEdit.cIdx].products[currentEdit.pIdx].name;
+            
+            if (!pName || pName === "Nuevo") {
+                alert("Primero ponle un nombre al producto.");
+                return;
+            }
+
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `✨ Creando<span class="loading-dots"></span>`;
+
+            const sys = "Eres un redactor creativo de fichas de producto de lujo.";
+            const prompt = `Redacta una descripción vendedora de máximo 25 palabras para un producto llamado "${pName}". Enfócate en la suavidad, calidad premium y confort. Responde solo la descripción sin etiquetas.`;
+
+            const result = await callGemini(prompt, sys);
+            if (result && !result.includes("Error")) {
+                textArea.value = result.trim();
+            }
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+
+        // --- CORE CATALOG LOGIC ---
         let isEditMode = false;
         let isAdminActive = false;
         let isTextMode = false;
@@ -220,62 +312,34 @@
         let logoClicks = 0;
         let clickTimer = null;
 
+        const DEFAULTS = {
+            titleSize: 24, subtitleSize: 14, nameSize: 16, descSize: 11, priceSize: 22, priceOriginalSize: 12, catNameSize: 10
+        };
+
         let state = {
-            season: 'winter',
-            whatsapp: '5111133344',
-            wsText: 'Pedir por WhatsApp',
-            wsColor: '#25D366',
-            logo: 'https://cdn-icons-png.flaticon.com/512/6103/6103079.png',
-            title: 'EDREDONES PREMIUM',
-            titleSize: 24,
-            subtitle: 'Calidad y confort garantizado',
-            subtitleSize: 14,
-            winter: [],
-            summer: []
+            season: 'winter', whatsapp: '5111133344', wsText: 'WhatsApp', wsColor: '#25D366',
+            logo: 'https://cdn-icons-png.flaticon.com/512/6103/6103079.png', title: 'EDREDONES PREMIUM',
+            titleSize: DEFAULTS.titleSize, subtitle: 'Calidad y confort garantizado', subtitleSize: DEFAULTS.subtitleSize,
+            winter: [], summer: []
         };
 
         function init() {
-            const saved = localStorage.getItem('catalogo_v25_full_data');
+            const saved = localStorage.getItem('catalogo_v26_ai_master');
             if (saved) {
                 state = { ...state, ...JSON.parse(saved) };
                 migrarDatos();
             } else {
-                // DATOS PRECARGADOS: 4 Categorías Invierno, 4 Categorías Verano, 2 Productos c/u
+                // Datos por defecto (mismo que anterior)
                 state.winter = [
                     { id: 1, name: "LÍNEA HOTELERA", icon: "https://via.placeholder.com/150/e0e7ff/000000?text=HOTEL", nameSize: 10, products: [
-                        { name: "Edredón Blanco Deluxe", nameSize: 16, description: "Microfibra tacto seda, relleno siliconado.", descSize: 11, price: "S/ 250", priceSize: 22, hasDiscount: true, discountValue: 20, thumb: "https://via.placeholder.com/400x500/f3f4f6/000000?text=Blanco", zoom: "" },
-                        { name: "Edredón Gris Perla", nameSize: 16, description: "Elegancia y abrigo para tu habitación.", descSize: 11, price: "S/ 250", priceSize: 22, hasDiscount: false, discountValue: 0, thumb: "https://via.placeholder.com/400x500/d1d5db/000000?text=Gris", zoom: "" }
-                    ]},
-                    { id: 2, name: "SHERPA PREMIUM", icon: "https://via.placeholder.com/150/fef3c7/000000?text=SHERPA", nameSize: 10, products: [
-                        { name: "Sherpa Azul Noche", nameSize: 16, description: "Doble faz, carnerito extra suave.", descSize: 11, price: "S/ 180", priceSize: 22, hasDiscount: true, discountValue: 15, thumb: "https://via.placeholder.com/400x500/1e3a8a/ffffff?text=Azul", zoom: "" },
-                        { name: "Sherpa Camello", nameSize: 16, description: "Calidez extrema para el invierno.", descSize: 11, price: "S/ 180", priceSize: 22, hasDiscount: false, discountValue: 0, thumb: "https://via.placeholder.com/400x500/d97706/ffffff?text=Camello", zoom: "" }
-                    ]},
-                    { id: 3, name: "PLUMAS", icon: "https://via.placeholder.com/150/fce7f3/000000?text=PLUMAS", nameSize: 10, products: [
-                        { name: "Plumas de Ganso", nameSize: 16, description: "100% natural, térmico y ligero.", descSize: 11, price: "S/ 450", priceSize: 22, hasDiscount: true, discountValue: 10, thumb: "https://via.placeholder.com/400x500/fbcfe8/000000?text=Ganso", zoom: "" },
-                        { name: "Plumas Sintético", nameSize: 16, description: "Alternativa hipoalergénica de lujo.", descSize: 11, price: "S/ 300", priceSize: 22, hasDiscount: false, discountValue: 0, thumb: "https://via.placeholder.com/400x500/f472b6/ffffff?text=Sintetico", zoom: "" }
-                    ]},
-                    { id: 4, name: "NÓRDICOS", icon: "https://via.placeholder.com/150/ccfbf1/000000?text=NORDICO", nameSize: 10, products: [
-                        { name: "Nórdico Simple", nameSize: 16, description: "Funda lavable + relleno.", descSize: 11, price: "S/ 220", priceSize: 22, hasDiscount: true, discountValue: 25, thumb: "https://via.placeholder.com/400x500/99f6e4/000000?text=Simple", zoom: "" },
-                        { name: "Nórdico Estampado", nameSize: 16, description: "Diseños modernos y vibrantes.", descSize: 11, price: "S/ 240", priceSize: 22, hasDiscount: false, discountValue: 0, thumb: "https://via.placeholder.com/400x500/5eead4/000000?text=Estampado", zoom: "" }
+                        { name: "Edredón Blanco Deluxe", nameSize: 16, description: "Microfibra tacto seda, relleno siliconado.", descSize: 11, price: "S/ 250", priceSize: 22, hasDiscount: true, discountValue: 20, thumb: "https://via.placeholder.com/400x500", zoom: "" },
+                        { name: "Edredón Gris Perla", nameSize: 16, description: "Elegancia y abrigo para tu habitación.", descSize: 11, price: "S/ 250", priceSize: 22, hasDiscount: false, discountValue: 0, thumb: "https://via.placeholder.com/400x500", zoom: "" }
                     ]}
                 ];
-                
                 state.summer = [
                     { id: 5, name: "SÁBANAS ALGODÓN", icon: "https://via.placeholder.com/150/ffedd5/000000?text=SABANAS", nameSize: 10, products: [
-                        { name: "Juego 200 Hilos", nameSize: 16, description: "Algodón pima, frescura total.", descSize: 11, price: "S/ 120", priceSize: 22, hasDiscount: true, discountValue: 10, thumb: "https://via.placeholder.com/400x500/fed7aa/000000?text=200H", zoom: "" },
-                        { name: "Juego 400 Hilos", nameSize: 16, description: "Suavidad satinada premium.", descSize: 11, price: "S/ 190", priceSize: 22, hasDiscount: false, discountValue: 0, thumb: "https://via.placeholder.com/400x500/fdba74/000000?text=400H", zoom: "" }
-                    ]},
-                    { id: 6, name: "QUILTS", icon: "https://via.placeholder.com/150/dbeafe/000000?text=QUILTS", nameSize: 10, products: [
-                        { name: "Quilt Verano", nameSize: 16, description: "Ligero y decorativo.", descSize: 11, price: "S/ 150", priceSize: 22, hasDiscount: true, discountValue: 20, thumb: "https://via.placeholder.com/400x500/bfdbfe/000000?text=Verano", zoom: "" },
-                        { name: "Quilt Reversible", nameSize: 16, description: "Dos diseños en uno.", descSize: 11, price: "S/ 160", priceSize: 22, hasDiscount: false, discountValue: 0, thumb: "https://via.placeholder.com/400x500/93c5fd/000000?text=Reversible", zoom: "" }
-                    ]},
-                    { id: 7, name: "COLCHAS", icon: "https://via.placeholder.com/150/f3e8ff/000000?text=COLCHAS", nameSize: 10, products: [
-                        { name: "Colcha Piqué", nameSize: 16, description: "Textura clásica y fresca.", descSize: 11, price: "S/ 100", priceSize: 22, hasDiscount: true, discountValue: 15, thumb: "https://via.placeholder.com/400x500/e9d5ff/000000?text=Pique", zoom: "" },
-                        { name: "Colcha Bordada", nameSize: 16, description: "Detalles elegantes.", descSize: 11, price: "S/ 130", priceSize: 22, hasDiscount: false, discountValue: 0, thumb: "https://via.placeholder.com/400x500/d8b4fe/000000?text=Bordada", zoom: "" }
-                    ]},
-                    { id: 8, name: "FUNDAS", icon: "https://via.placeholder.com/150/ecfccb/000000?text=FUNDAS", nameSize: 10, products: [
-                        { name: "Pack Fundas Almohada", nameSize: 16, description: "Set de 2 unidades.", descSize: 11, price: "S/ 40", priceSize: 22, hasDiscount: true, discountValue: 5, thumb: "https://via.placeholder.com/400x500/d9f99d/000000?text=Almohadas", zoom: "" },
-                        { name: "Protector Colchón", nameSize: 16, description: "Impermeable y transpirable.", descSize: 11, price: "S/ 90", priceSize: 22, hasDiscount: false, discountValue: 0, thumb: "https://via.placeholder.com/400x500/bef264/000000?text=Protector", zoom: "" }
+                        { name: "Juego 200 Hilos", nameSize: 16, description: "Algodón pima, frescura total.", descSize: 11, price: "S/ 120", priceSize: 22, hasDiscount: true, discountValue: 10, thumb: "https://via.placeholder.com/400x500", zoom: "" },
+                        { name: "Juego 400 Hilos", nameSize: 16, description: "Suavidad satinada premium.", descSize: 11, price: "S/ 190", priceSize: 22, hasDiscount: false, discountValue: 0, thumb: "https://via.placeholder.com/400x500", zoom: "" }
                     ]}
                 ];
             }
@@ -283,16 +347,17 @@
         }
 
         function migrarDatos() {
-            if(!state.titleSize) state.titleSize = 24;
-            if(!state.subtitleSize) state.subtitleSize = 14;
+            if(!state.titleSize) state.titleSize = DEFAULTS.titleSize;
+            if(!state.subtitleSize) state.subtitleSize = DEFAULTS.subtitleSize;
             ['winter', 'summer'].forEach(s => {
                 if(state[s]) {
                     state[s].forEach(cat => {
-                        if(!cat.nameSize) cat.nameSize = 10;
+                        if(!cat.nameSize) cat.nameSize = DEFAULTS.catNameSize;
                         cat.products.forEach(p => {
-                            if(!p.nameSize) p.nameSize = 16;
-                            if(!p.descSize) p.descSize = 11;
-                            if(!p.priceSize) p.priceSize = 22;
+                            if(!p.nameSize) p.nameSize = DEFAULTS.nameSize;
+                            if(!p.descSize) p.descSize = DEFAULTS.descSize;
+                            if(!p.priceSize) p.priceSize = DEFAULTS.priceSize;
+                            if(!p.priceOriginalSize) p.priceOriginalSize = DEFAULTS.priceOriginalSize;
                         });
                     });
                 }
@@ -324,12 +389,13 @@
             render();
         }
 
-        function renderSizeControl(currentVal, type, cIdx, pIdx, key) {
+        function renderSizeControl(currentVal, type, cIdx, pIdx, key, defaultVal) {
             const args = `'${type}', ${cIdx}, ${pIdx}, '${key}'`;
             return `
                 <div class="size-btn" onclick="updateSize(${args}, ${currentVal - 1})">▼</div>
                 <input type="number" class="size-input" value="${currentVal}" onchange="updateSize(${args}, parseInt(this.value))">
                 <div class="size-btn" onclick="updateSize(${args}, ${currentVal + 1})">▲</div>
+                <div class="size-btn reset" onclick="updateSize(${args}, ${defaultVal})" title="Restaurar">↺</div>
             `;
         }
 
@@ -343,7 +409,6 @@
         function render() {
             const isW = state.season === 'winter';
             const data = state[state.season];
-            
             document.getElementById('mainHeader').className = `text-center pt-8 pb-10 px-2 text-white relative rounded-b-[3rem] shadow-xl transition-all duration-700 ${isW ? 'winter-theme' : 'summer-theme'}`;
             
             const titleEl = document.getElementById('storeTitle');
@@ -351,14 +416,14 @@
             titleEl.style.fontSize = state.titleSize + 'px';
             titleEl.contentEditable = isEditMode;
             titleEl.onblur = (e) => { state.title = e.target.innerText; };
-            document.getElementById('ctrl-title').innerHTML = renderSizeControl(state.titleSize, 'global', 0, 0, 'titleSize');
+            document.getElementById('ctrl-title').innerHTML = renderSizeControl(state.titleSize, 'global', 0, 0, 'titleSize', DEFAULTS.titleSize);
 
             const subEl = document.getElementById('storeSubtitle');
             subEl.innerText = state.subtitle;
             subEl.style.fontSize = state.subtitleSize + 'px';
             subEl.contentEditable = isEditMode;
             subEl.onblur = (e) => { state.subtitle = e.target.innerText; };
-            document.getElementById('ctrl-subtitle').innerHTML = renderSizeControl(state.subtitleSize, 'global', 0, 0, 'subtitleSize');
+            document.getElementById('ctrl-subtitle').innerHTML = renderSizeControl(state.subtitleSize, 'global', 0, 0, 'subtitleSize', DEFAULTS.subtitleSize);
 
             document.getElementById('storeLogo').src = state.logo;
 
@@ -367,11 +432,11 @@
                 <div class="flex flex-col items-center gap-2 cursor-pointer min-w-[5.5rem] shrink-0" onclick="scrollToSection(${idx})">
                     <div class="relative w-16 h-16 rounded-full border-2 border-white p-0.5 bg-white shadow overflow-hidden">
                         <img src="${cat.icon}" class="w-full h-full object-cover rounded-full">
-                        <div onclick="event.stopPropagation(); openConfigModal('catIcon', ${idx})" class="admin-only absolute inset-0 bg-black/60 flex items-center justify-center text-[9px] text-white font-black opacity-0 hover:opacity-100 transition-opacity">FOTO</div>
+                        <div onclick="event.stopPropagation(); openConfigModal('catIcon', ${idx})" class="admin-only absolute inset-0 bg-black/60 flex items-center justify-center text-[9px] text-white font-black opacity-0 hover:opacity-100 transition-opacity uppercase">FOTO</div>
                     </div>
                     <div class="relative-text">
                         <span contenteditable="${isEditMode}" onblur="state['${state.season}'][${idx}].name = this.innerText" style="font-size: ${cat.nameSize}px" class="font-black text-gray-700 uppercase truncate max-w-[5rem] block editable">${cat.name}</span>
-                        <div class="size-control admin-only">${renderSizeControl(cat.nameSize, 'cat', idx, 0, 'nameSize')}</div>
+                        <div class="size-control admin-only">${renderSizeControl(cat.nameSize, 'cat', idx, 0, 'nameSize', DEFAULTS.catNameSize)}</div>
                     </div>
                 </div>
             `).join('');
@@ -386,11 +451,11 @@
                             <button onclick="deleteAction('cat', ${cIdx})" class="text-[8px] bg-red-50 text-red-600 px-2 py-1 rounded-lg font-black uppercase">🗑️</button>
                         </div>
                     </div>
-                    <!-- Grid con padding lateral de 4px para simular 1mm -->
-                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 pb-4">
+                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 pb-4 px-1">
                         ${cat.products.map((p, pIdx) => {
                             const discVal = p.discountValue || 0;
                             const finalPrice = p.hasDiscount ? calculateDiscount(p.price, discVal) : p.price;
+                            const priceOrigSize = p.priceOriginalSize || DEFAULTS.priceOriginalSize;
                             return `
                             <div class="product-card flex flex-col h-full bg-white">
                                 <div class="aspect-[4/5] bg-gray-50 relative overflow-hidden">
@@ -405,11 +470,11 @@
                                 <div class="p-2 flex flex-col flex-1">
                                     <div class="relative-text">
                                         <h4 contenteditable="${isEditMode}" onblur="updateProd(${cIdx}, ${pIdx}, 'name', this.innerText)" style="font-size: ${p.nameSize}px" class="font-black text-gray-800 leading-tight mb-1 editable line-clamp-2 min-h-[2.4em]">${p.name}</h4>
-                                        <div class="size-control admin-only">${renderSizeControl(p.nameSize, 'prod', cIdx, pIdx, 'nameSize')}</div>
+                                        <div class="size-control admin-only">${renderSizeControl(p.nameSize, 'prod', cIdx, pIdx, 'nameSize', DEFAULTS.nameSize)}</div>
                                     </div>
                                     <div class="mb-2 relative-text">
                                         <div id="desc-${cIdx}-${pIdx}" contenteditable="${isEditMode}" onblur="updateProd(${cIdx}, ${pIdx}, 'description', this.innerText)" style="font-size: ${p.descSize}px" class="text-gray-400 leading-tight editable ${!isEditMode ? 'line-clamp-3' : ''}">${p.description}</div>
-                                        <div class="size-control admin-only">${renderSizeControl(p.descSize, 'prod', cIdx, pIdx, 'descSize')}</div>
+                                        <div class="size-control admin-only">${renderSizeControl(p.descSize, 'prod', cIdx, pIdx, 'descSize', DEFAULTS.descSize)}</div>
                                         ${!isEditMode && p.description.length > 50 ? `
                                             <button id="btn-desc-${cIdx}-${pIdx}" onclick="toggleDescription(${cIdx}, ${pIdx})" class="text-[9px] font-bold text-blue-500 uppercase mt-1">Ver más</button>
                                         ` : ''}
@@ -417,8 +482,13 @@
                                     <div class="mt-auto">
                                         <div class="flex flex-row items-baseline gap-1 mb-2 relative-text">
                                             <p contenteditable="${isEditMode}" onblur="updateProd(${cIdx}, ${pIdx}, 'price', this.innerText); render()" style="font-size: ${p.priceSize}px" class="text-blue-600 font-black leading-none editable order-1 whitespace-nowrap">${p.hasDiscount ? finalPrice : p.price}</p>
-                                            <div class="size-control admin-only">${renderSizeControl(p.priceSize, 'prod', cIdx, pIdx, 'priceSize')}</div>
-                                            ${ p.hasDiscount ? `<p class="text-red-500 text-[10px] line-through font-bold order-2 opacity-70 whitespace-nowrap">${p.price}</p>` : '' }
+                                            <div class="size-control admin-only">${renderSizeControl(p.priceSize, 'prod', cIdx, pIdx, 'priceSize', DEFAULTS.priceSize)}</div>
+                                            ${ p.hasDiscount ? `
+                                                <div class="relative-text order-2 ml-1">
+                                                    <p class="text-red-500 line-through font-bold opacity-70 whitespace-nowrap" style="font-size: ${priceOrigSize}px">${p.price}</p>
+                                                    <div class="size-control admin-only">${renderSizeControl(priceOrigSize, 'prod', cIdx, pIdx, 'priceOriginalSize', DEFAULTS.priceOriginalSize)}</div>
+                                                </div>
+                                            ` : '' }
                                         </div>
                                         <button onclick="sendWhatsapp(${cIdx}, ${pIdx})" style="background-color: ${state.wsColor};" class="hover:brightness-90 active:scale-95 text-white text-[10px] font-bold py-3 rounded-xl w-full flex items-center justify-center gap-1.5 shadow-md transition-all uppercase">
                                             <svg viewBox="0 0 24 24" width="14" height="14" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.445 0 .081 5.391.079 11.99c0 2.112.553 4.177 1.597 6.011L0 24l6.193-1.623c1.776.969 3.79 1.481 5.848 1.482h.005c6.605 0 11.97-5.392 11.972-11.992a11.9 11.9 0 00-3.51-8.474z"/></svg>
@@ -444,20 +514,20 @@
         function openWhatsappConfig() { document.getElementById('wsNumber').value = state.whatsapp; document.getElementById('wsText').value = state.wsText; document.getElementById('wsColor').value = state.wsColor; document.getElementById('whatsappModal').classList.add('active'); }
         function saveWhatsappConfig() { state.whatsapp = document.getElementById('wsNumber').value.replace(/\D/g, ''); state.wsText = document.getElementById('wsText').value; state.wsColor = document.getElementById('wsColor').value; render(); document.getElementById('whatsappModal').classList.remove('active'); }
         function openConfigModal(type, extra = null) { const modal = document.getElementById('configModal'); const input = document.getElementById('configInput'); const saveBtn = document.getElementById('configSaveBtn'); if (type === 'logo') { document.getElementById('configTitle').innerText = "URL Logo"; input.value = state.logo; saveBtn.onclick = () => { state.logo = input.value; render(); modal.classList.remove('active'); }; } else if (type === 'catIcon') { document.getElementById('configTitle').innerText = "Icono Categoría"; input.value = state[state.season][extra].icon; saveBtn.onclick = () => { state[state.season][extra].icon = input.value; render(); modal.classList.remove('active'); }; } modal.classList.add('active'); input.focus(); }
-        function openEditProductModal(cIdx, pIdx) { currentEdit = { cIdx, pIdx }; const p = state[state.season][cIdx].products[pIdx]; document.getElementById('prodThumb').value = p.thumb; document.getElementById('prodZoom').value = p.zoom || ""; document.getElementById('prodDiscount').value = p.discountValue || 0; document.getElementById('editProductModal').classList.add('active'); }
-        function saveProductModalChanges() { const p = state[state.season][currentEdit.cIdx].products[currentEdit.pIdx]; p.thumb = document.getElementById('prodThumb').value; p.zoom = document.getElementById('prodZoom').value; p.discountValue = parseInt(document.getElementById('prodDiscount').value) || 0; render(); document.getElementById('editProductModal').classList.remove('active'); }
-        function deleteAction(type, cIdx, pIdx = null) { if(confirm("¿Seguro que deseas eliminar esto?")) { if (type === 'cat') state[state.season].splice(cIdx, 1); else state[state.season][cIdx].products.splice(pIdx, 1); render(); } }
+        function openEditProductModal(cIdx, pIdx) { currentEdit = { cIdx, pIdx }; const p = state[state.season][cIdx].products[pIdx]; document.getElementById('prodThumb').value = p.thumb; document.getElementById('prodZoom').value = p.zoom || ""; document.getElementById('prodDiscount').value = p.discountValue || 0; document.getElementById('prodDescText').value = p.description || ""; document.getElementById('editProductModal').classList.add('active'); }
+        function saveProductModalChanges() { const p = state[state.season][currentEdit.cIdx].products[currentEdit.pIdx]; p.thumb = document.getElementById('prodThumb').value; p.zoom = document.getElementById('prodZoom').value; p.discountValue = parseInt(document.getElementById('prodDiscount').value) || 0; p.description = document.getElementById('prodDescText').value; render(); document.getElementById('editProductModal').classList.remove('active'); }
+        function deleteAction(type, cIdx, pIdx = null) { if(confirm("¿Seguro?")) { if (type === 'cat') state[state.season].splice(cIdx, 1); else state[state.season][cIdx].products.splice(pIdx, 1); render(); } }
         function updateProd(c, p, k, v) { state[state.season][c].products[p][k] = v; }
         function switchSeason(s) { state.season = s; render(); }
         function toggleDiscount(c, p) { state[state.season][c].products[p].hasDiscount = !state[state.season][c].products[p].hasDiscount; render(); }
-        function saveToStorage() { localStorage.setItem('catalogo_v25_full_data', JSON.stringify(state)); document.getElementById('successModal').classList.add('active'); }
+        function saveToStorage() { localStorage.setItem('catalogo_v26_ai_master', JSON.stringify(state)); document.getElementById('successModal').classList.add('active'); }
         function sendWhatsapp(cIdx, pIdx) { const p = state[state.season][cIdx].products[pIdx]; const finalPrice = p.hasDiscount ? calculateDiscount(p.price, p.discountValue) : p.price; const text = `🛍️ *PEDIDO*\n*Producto*: ${p.name.toUpperCase()}\n*Precio*: ${finalPrice}\n*Foto*: ${p.thumb}`; window.open(`https://wa.me/${state.whatsapp}?text=${encodeURIComponent(text)}`, '_blank'); }
         function scrollToSection(idx) { const el = document.getElementById(`cat-${idx}`); if(el) window.scrollTo({top: el.offsetTop - 70, behavior: 'smooth'}); }
         function openZoom(u) { document.getElementById('modalImg').src = u; document.getElementById('imageModal').classList.add('active'); }
         function closeZoom() { document.getElementById('imageModal').classList.remove('active'); }
         function addCategory() { state[state.season].push({ id: Date.now(), name: "NUEVA", icon: "https://via.placeholder.com/150", nameSize: 10, products: [] }); render(); }
-        function addProduct(i) { state[state.season][i].products.push({ name: "Producto", nameSize: 16, description: "...", descSize: 11, price: "S/ 0", priceSize: 22, hasDiscount: false, discountValue: 0, thumb: "https://via.placeholder.com/400x500", zoom: "" }); render(); }
-        function replicateData(cIdx) { const p = state[state.season][cIdx].products; if(p.length < 2) return; const s = p[0]; for(let i=1; i<p.length; i++) { p[i].price = s.price; p[i].priceSize = s.priceSize; p[i].name = s.name; p[i].nameSize = s.nameSize; p[i].description = s.description; p[i].descSize = s.descSize; p[i].hasDiscount = s.hasDiscount; p[i].discountValue = s.discountValue; } render(); }
+        function addProduct(i) { state[state.season][i].products.push({ name: "Producto", nameSize: 16, description: "...", descSize: 11, price: "S/ 0", priceSize: 22, hasDiscount: false, discountValue: 0, priceOriginalSize: 12, thumb: "https://via.placeholder.com/400x500", zoom: "" }); render(); }
+        function replicateData(cIdx) { const p = state[state.season][cIdx].products; if(p.length < 2) return; const s = p[0]; for(let i=1; i<p.length; i++) { p[i].price = s.price; p[i].priceSize = s.priceSize; p[i].name = s.name; p[i].nameSize = s.nameSize; p[i].description = s.description; p[i].descSize = s.descSize; p[i].hasDiscount = s.hasDiscount; p[i].discountValue = s.discountValue; p[i].priceOriginalSize = s.priceOriginalSize; } render(); }
         function calculateDiscount(priceStr, disc) { let n = parseFloat(priceStr.replace(/[^0-9.]/g, '')); if(isNaN(n)) return "S/ --"; let factor = (100 - disc) / 100; return "S/ " + (n * factor).toFixed(0); }
 
         init();
